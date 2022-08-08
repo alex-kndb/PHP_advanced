@@ -1,0 +1,13 @@
+{
+    "name": "lks_kndb/blog",
+    "description": "project for php v2",
+    "autoload": {
+        "psr-4": {
+            "LksKndb\\Php2\\": "src/"
+
+        }
+    },
+    "require": {
+        "fakerphp/faker": "^1.20"
+    }
+}
