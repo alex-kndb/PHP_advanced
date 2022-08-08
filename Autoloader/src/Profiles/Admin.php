@@ -1,7 +1,7 @@
 <?php
 
-namespace src\Profiles;
-use src\Common\Human;
+namespace Profiles;
+use Common\Human;
 
 class Admin extends Human
 {

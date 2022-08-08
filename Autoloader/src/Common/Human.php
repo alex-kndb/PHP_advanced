@@ -1,6 +1,6 @@
 <?php
 
-namespace src\Common;
+namespace Common;
 
 class Human
 {

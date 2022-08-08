@@ -2,11 +2,10 @@
 
 require 'loader.php';
 
-use src\Profiles\{User, Admin};
+use Profiles\{User, Admin};
 
 $user = new User(1, 'Alex', 30);
-$admin = new Admin(2, 'John', 35, full);
-//print_r($user);
+$admin = new Admin(2, 'John', 35, 'full');
 
-//$user->sayHello();
-//$admin->sayHello();
+$user->sayHello();
+$admin->sayHello();
