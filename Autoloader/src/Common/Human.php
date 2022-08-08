@@ -1,6 +1,6 @@
 <?php
 
-namespace Common;
+namespace LksKndb\Php2\Common;
 
 class Human
 {

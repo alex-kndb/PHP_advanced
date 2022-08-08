@@ -1,7 +1,7 @@
 <?php
 
-namespace Profiles;
-use Common\Human;
+namespace LksKndb\Php2\Profiles;
+use LksKndb\Php2\Common\Human;
 
 class User extends Human
 {
