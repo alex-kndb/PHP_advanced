@@ -3,6 +3,10 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/Blog/src" isTestSource="false" packagePrefix="LksKndb/Php2" />
+      <excludeFolder url="file://$MODULE_DIR$/Blog/vendor/fakerphp/faker" />
+      <excludeFolder url="file://$MODULE_DIR$/Blog/vendor/symfony/deprecation-contracts" />
+      <excludeFolder url="file://$MODULE_DIR$/Blog/vendor/composer" />
+      <excludeFolder url="file://$MODULE_DIR$/Blog/vendor/psr/container" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

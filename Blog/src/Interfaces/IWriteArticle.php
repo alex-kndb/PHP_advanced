@@ -1,6 +1,6 @@
 <?php
 
-namespace LksKndb\Php2\User\Interfaces;
+namespace LksKndb\Php2\Interfaces;
 
 interface IWriteArticle
 {
