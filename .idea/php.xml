@@ -6,7 +6,8 @@
       <path value="$PROJECT_DIR$/Blog/vendor/symfony/deprecation-contracts" />
       <path value="$PROJECT_DIR$/Blog/vendor/composer" />
       <path value="$PROJECT_DIR$/Blog/vendor/psr/container" />
+      <path value="$PROJECT_DIR$/Blog/vendor/symfony/polyfill-uuid" />
     </include_path>
   </component>
-  <component name="PhpProjectSharedConfiguration" php_language_level="7.4" />
+  <component name="PhpProjectSharedConfiguration" php_language_level="8.1" />
 </project>

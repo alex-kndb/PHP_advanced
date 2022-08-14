@@ -2,45 +2,44 @@
 
 namespace LksKndb\Php2\Classes;
 
+use DateTimeImmutable;
+
 class User
 {
-    private int $userId;
-    private string $firstName;
-    private string $lastName;
+    public function __construct(
+        private UUID $uuid,
+        private Name $name,
+        private DateTimeImmutable $registeredOn
+    ){}
 
-    public function __construct(int $userId, string $firstName, string $lastName)
+    /**
+     * @return UUID
+     */
+    public function getUUID(): UUID
     {
-        $this->userId  = $userId;
-        $this->firstName = $firstName;
-        $this->lastName = $lastName;
+        return $this->uuid;
     }
 
     /**
-     * @return int
+     * @return Name
      */
-    public function getUserId(): int
+    public function getName(): Name
     {
-        return $this->userId;
+        return $this->name;
     }
 
     /**
-     * @return string
+     * @return DateTimeImmutable
      */
-    public function getFirstName(): string
+    public function getRegisteredOn(): DateTimeImmutable
     {
-        return $this->firstName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLastName(): string
-    {
-        return $this->lastName;
+        return $this->registeredOn;
     }
 
     public function __toString(): string
     {
-        return implode('|', [$this->getUserId(), $this->getFirstName(), $this->getLastName()]).PHP_EOL;
+        return "User id: {$this->getUUID()}".PHP_EOL.
+            "Registration: ".$this->getRegisteredOn()->format('Y-m-d\ H:i:s').PHP_EOL.
+            $this->getName()->__toString();
     }
 }

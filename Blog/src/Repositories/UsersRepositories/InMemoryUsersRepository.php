@@ -1,0 +1,45 @@
+<?php
+
+namespace LksKndb\Php2\Repositories\UsersRepositories;
+
+use LksKndb\Php2\Classes\User;
+use LksKndb\Php2\Classes\UUID;
+use LksKndb\Php2\Exceptions\UserNotFoundException;
+
+class InMemoryUsersRepository implements UsersRepositoriesInterface
+{
+    private array $users = [];
+
+    /**
+     * @return array
+     */
+    public function getUsers(): array
+    {
+        return $this->users;
+    }
+
+    public function saveUser(User $user): void
+    {
+        $this->users[] = $user;
+    }
+
+    public function getUserByUUID(UUID $uuid): User
+    {
+        foreach($this->users as $user){
+            if((string)$user->getUUID() === (string)$uuid){
+                return $user;
+            }
+        }
+        throw new UserNotFoundException("User (UUID: $uuid) not found");
+    }
+
+    public function getUserByUsername(string $username): User
+    {
+        foreach($this->users as $user){
+            if($user->getUsername() === $username){
+                return $user;
+            }
+        }
+        throw new UserNotFoundException("User (username: $username) not found");
+    }
+}
