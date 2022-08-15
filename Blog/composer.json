@@ -1,0 +1,15 @@
+{
+    "name": "lks_kndb/blog",
+    "description": "project for php v2",
+    "autoload": {
+        "psr-4": {
+            "LksKndb\\Php2\\": "src/"
+
+        }
+    },
+    "require": {
+        "fakerphp/faker": "^1.20",
+        "symfony/polyfill-uuid": "^1.26",
+        "ext-pdo": "*"
+    }
+}
