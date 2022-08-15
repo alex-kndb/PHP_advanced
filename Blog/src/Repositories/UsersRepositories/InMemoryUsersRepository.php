@@ -4,7 +4,7 @@ namespace LksKndb\Php2\Repositories\UsersRepositories;
 
 use LksKndb\Php2\Classes\User;
 use LksKndb\Php2\Classes\UUID;
-use LksKndb\Php2\Exceptions\UserNotFoundException;
+use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 
 class InMemoryUsersRepository implements UsersRepositoriesInterface
 {

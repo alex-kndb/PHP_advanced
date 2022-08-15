@@ -7,8 +7,8 @@ use LksKndb\Php2\Classes\Name;
 use LksKndb\Php2\Classes\User;
 use LksKndb\Php2\Classes\UUID;
 use LksKndb\Php2\Exceptions\ArgumentNotExistException;
-use LksKndb\Php2\Exceptions\UserNotFoundException;
 use LksKndb\Php2\Exceptions\CommandException;
+use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use LksKndb\Php2\Repositories\UsersRepositories\UsersRepositoriesInterface;
 
 class CreateUserCommand

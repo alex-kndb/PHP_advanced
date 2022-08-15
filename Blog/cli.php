@@ -2,43 +2,27 @@
 
 require_once __DIR__.'/vendor/autoload.php';
 
+use LksKndb\Php2\Classes\Comment;
+use LksKndb\Php2\Classes\Post;
+use LksKndb\Php2\Classes\UUID;
 use LksKndb\Php2\Commands\Arguments;
 use LksKndb\Php2\Commands\CreateUserCommand;
+use LksKndb\Php2\Repositories\CommentsRepositories\SqliteCommentsRepository;
 use LksKndb\Php2\Repositories\UsersRepositories\SqliteUsersRepository;
 
-//$faker = Faker\Factory::create();
+$faker = Faker\Factory::create('ru_RU');
 $connection = new PDO('sqlite:'.__DIR__.'/db.sqlite');
 
-//$userRepo = new InMemoryUsersRepository();
-//$userRepo->saveUser($user);
-//print_r($userRepo->getUsers());
-
-$userRepo = new SqliteUsersRepository($connection);
-
-$command = new CreateUserCommand($userRepo);
-
-try{
-    $command->handle(Arguments::fromArgv($argv));
-}catch(Exception $e){
+$commentsRepo = new SqliteCommentsRepository($connection);
+$command = new \LksKndb\Php2\Commands\CreateCommentCommand($commentsRepo);
+$str = '4fdae89a-e3eb-4d8e-ad83-15771dcb73ff';
+try {
+//    $command->handle(Arguments::fromArgv($argv));
+    echo $command->get(new UUID($str));
+} catch (Exception $e) {
     echo $e->getMessage();
 }
 
-/*
-$user = new User(
-    UUID::createUUID(),
-    new Name(
-        $faker->firstName(),
-        $faker->lastName(),
-        $faker->userName()
-    ),
-    new DateTimeImmutable()
-);
-*/
-//$userRepo->saveUser($user);
-
-//$user = $userRepo->getUserByUUID(new UUID('c968d9da-970e-4103-83fd-a63e8643bfe3'));
-//$user = $userRepo->getUserByUsername('gaetano09');
-//print_r($user);
 
 //switch($argv[1]){
 //    case 'user':

@@ -1,35 +1,38 @@
 <?php
 
 namespace LksKndb\Php2\Classes;
-use LksKndb\Php2\Interfaces\IWriteComment;
 
-class Comment extends User implements IWriteComment
+class Comment
 {
-    private int $commentId;
-    private int $articleId;
-    private string $text;
+    public function __construct(
+        private UUID $uuid,
+        private UUID $post,
+        private UUID $author,
+        private string $text
+    ){}
 
-    public function __construct(int $commentId, int $userId, string $firstName, string $lastName, int $articleId, string $text){
-        parent::__construct($userId, $firstName, $lastName);
-        $this->commentId = $commentId;
-        $this->articleId = $articleId;
-        $this->text = $text;
+    /**
+     * @return UUID
+     */
+    public function getUuid(): UUID
+    {
+        return $this->uuid;
     }
 
     /**
-     * @return int
+     * @return UUID
      */
-    public function getCommentId(): int
+    public function getPost(): UUID
     {
-        return $this->commentId;
+        return $this->post;
     }
 
     /**
-     * @return int
+     * @return UUID
      */
-    public function getArticleId(): int
+    public function getAuthor(): UUID
     {
-        return $this->articleId;
+        return $this->author;
     }
 
     /**
@@ -42,11 +45,11 @@ class Comment extends User implements IWriteComment
 
     public function __toString(): string
     {
-        return parent::__toString().implode(PHP_EOL, [$this->getCommentId(), $this->getArticleId(), $this->getText()]);
+        return 'Comment UUID: '.$this->getUuid().PHP_EOL.
+            'Post UUID: '.$this->getPost().PHP_EOL.
+            'Author UUID: '.$this->getAuthor().PHP_EOL.
+            'Text: '.$this->getText().PHP_EOL;
     }
 
-    public function writeFeedback()
-    {
-        // TODO: Implement writeFeedback() method.
-    }
+
 }

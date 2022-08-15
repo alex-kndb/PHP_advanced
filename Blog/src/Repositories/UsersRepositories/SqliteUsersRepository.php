@@ -2,15 +2,15 @@
 
 namespace LksKndb\Php2\Repositories\UsersRepositories;
 
+use DateTimeImmutable;
 use LksKndb\Php2\Classes\Name;
 use LksKndb\Php2\Classes\User;
 use LksKndb\Php2\Classes\UUID;
-use LksKndb\Php2\Exceptions\InvalidUsernameException;
-use LksKndb\Php2\Exceptions\InvalidUuidException;
-use LksKndb\Php2\Exceptions\UserNotFoundException;
+use LksKndb\Php2\Exceptions\User\InvalidUsernameException;
+use LksKndb\Php2\Exceptions\User\InvalidUuidException;
+use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use PDO;
 use PDOStatement;
-use DateTimeImmutable;
 
 class SqliteUsersRepository implements UsersRepositoriesInterface
 {

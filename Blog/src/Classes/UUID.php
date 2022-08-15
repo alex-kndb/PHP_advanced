@@ -2,7 +2,7 @@
 
 namespace LksKndb\Php2\Classes;
 
-use LksKndb\Php2\Exceptions\InvalidUuidException;
+use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 
 class UUID
 {
