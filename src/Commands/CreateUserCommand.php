@@ -48,7 +48,7 @@ class CreateUserCommand
         try{
             $this->usersRepository->getUserByUsername($username);
         }catch(UserNotFoundException $e){
-            echo $e->getMessage();
+//            echo $e->getMessage();
             return false;
         }
         return true;
