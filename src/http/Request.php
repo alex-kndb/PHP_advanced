@@ -1,18 +1,19 @@
 <?php
 
-namespace LksKndb\Php2\http\Response;
-
+namespace LksKndb\Php2\http;
 
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\Exceptions\JsonException;
 
-class Response
+class Request
 {
     public function __construct(
-        private array $get,
-        private array $server,
+        private array  $get,
+        private array  $server,
         private string $body
-    ){}
+    )
+    {
+    }
 
     // 1. Метод для получения пути запроса
     // Напрмер, для http://example.com/some/page?x=1&y=acb
@@ -20,22 +21,25 @@ class Response
     /**
      * @throws HttpException
      */
-    public function path() : string
+    public function path(): string
     {
-        if(!array_key_exists('REQUEST_URI', $this->server)){
+        if (!array_key_exists('REQUEST_URI', $this->server)) {
             throw new HttpException('Cannot get path from the request!');
         }
-        $components = parse_url($this->server['REQUEST_URI']);
-        if(!is_array($components) || !array_key_exists('path', $components)){
+        // http://127.0.0.1:8000/some/path?some_param=123
+        $path = parse_url($this->server['REQUEST_URI'], PHP_URL_PATH);
+        // /some/path
+
+        if(!$path){
             throw new HttpException('Cannot get path from the request!');
         }
-        return $components['path'];
+        return $path;
     }
 
 
     // 2. Метод для получения значения
     // определённого параметра строки запроса
-    // Напрмер, для http://example.com/some/page?x=1&y=acb
+    // Напрbмер, для http://example.com/some/page?x=1&y=acb
     // значением параметра x будет строка '1'
     /**
      * @throws HttpException
