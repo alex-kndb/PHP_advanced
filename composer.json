@@ -1,0 +1,20 @@
+{
+    "name": "lks_kndb/blog",
+    "description": "project for php v2",
+    "autoload": {
+        "psr-4": {
+            "LksKndb\\Php2\\": "src/"
+
+        }
+    },
+    "scripts": {
+        "test": "phpunit tests --testdox --colors"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.20",
+        "symfony/polyfill-uuid": "^1.26",
+        "ext-pdo": "*",
+        "ext-mbstring": "*",
+        "phpunit/phpunit": "^9.5"
+    }
+}
