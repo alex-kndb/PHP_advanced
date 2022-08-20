@@ -12,7 +12,7 @@ use LksKndb\Php2\Repositories\UsersRepositories\UsersRepositoriesInterface;
 
 class FindUserByUsername implements ActionInterface
 {
-    private function __construct(
+    public function __construct(
         private UsersRepositoriesInterface $usersRepository
     ) {
     }
@@ -32,9 +32,11 @@ class FindUserByUsername implements ActionInterface
         }
 
         return new SuccessfulResponse([
+            'uuid' => (string)$user->getUUID(),
             'username' => $user->getName()->getUsername(),
             'first_name' => $user->getName()->getFirstName(),
-            'last_name' => $user->getName()->getLastName()
+            'last_name' => $user->getName()->getLastName(),
+            'registeredOn' => $user->getRegisteredOn()->format('Y-m-d\ H:i:s')
         ]);
     }
 }

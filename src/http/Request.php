@@ -16,7 +16,7 @@ class Request
     }
 
     // 1. Метод для получения пути запроса
-    // Напрмер, для http://example.com/some/page?x=1&y=acb
+    // Например, для http://example.com/some/page?x=1&y=acb
     // путём будет строка '/some/page'
     /**
      * @throws HttpException
@@ -39,7 +39,7 @@ class Request
 
     // 2. Метод для получения значения
     // определённого параметра строки запроса
-    // Напрbмер, для http://example.com/some/page?x=1&y=acb
+    // Например, для http://example.com/some/page?x=1&y=acb
     // значением параметра x будет строка '1'
     /**
      * @throws HttpException

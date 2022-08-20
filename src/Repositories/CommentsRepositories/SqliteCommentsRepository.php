@@ -60,4 +60,14 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
             new UUID($result['author']),
             $result['text']);
     }
+
+    public function deleteComment(UUID $uuid): void
+    {
+        $statement = $this->connection->prepare(
+            'DELETE FROM comments WHERE uuid = :uuid'
+        );
+        $statement->execute([
+            ':uuid' => (string)$uuid,
+        ]);
+    }
 }

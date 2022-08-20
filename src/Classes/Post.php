@@ -14,7 +14,7 @@ class Post
     /**
      * @return string
      */
-    public function getPost(): string
+    public function getPost(): UUID
     {
         return $this->post;
     }

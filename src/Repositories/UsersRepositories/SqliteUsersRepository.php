@@ -9,6 +9,7 @@ use LksKndb\Php2\Classes\UUID;
 use LksKndb\Php2\Exceptions\User\InvalidUsernameException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use LksKndb\Php2\Exceptions\User\UserNotFoundException;
+use LksKndb\Php2\Exceptions\UserAlreadyExistException;
 use PDO;
 use PDOStatement;
 
@@ -18,8 +19,18 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
         private PDO $connection
     ){}
 
+    /**
+     * @throws InvalidUuidException
+     * @throws UserNotFoundException
+     * @throws InvalidUsernameException
+     * @throws UserAlreadyExistException
+     */
     public function saveUser(User $user): void
     {
+        $username = $user->getName()->getUsername();
+        if($this->isUserExist($username)){
+            throw new UserAlreadyExistException("User with such username is already exist: $username");
+        }
         $statement = $this->connection->prepare(
             'INSERT INTO users (uuid, username, first_name,last_name, registration) VALUES (:uuid, :username, :first_name, :last_name, :registration)'
         );
@@ -30,6 +41,17 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
             ':last_name' => $user->getName()->getLastName(),
             ':registration' => $user->getRegisteredOn()->format('Y-m-d\ H:i:s'),
         ]);
+    }
+
+    public function isUserExist(string $username) : bool
+    {
+        $statement = $this->connection->prepare(
+            'SELECT * FROM users WHERE username = :username'
+        );
+        $statement->execute([
+            ':username' => $username,
+        ]);
+        return (bool)$statement->fetch(PDO::FETCH_ASSOC);
     }
 
     /**

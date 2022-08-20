@@ -1,10 +1,19 @@
 <?php
 
+use LksKndb\Php2\http\Actions\DeleteComment;
+use LksKndb\Php2\http\Actions\DeletePost;
+use LksKndb\Php2\http\Actions\FindCommentByUUID;
+use LksKndb\Php2\http\Actions\FindPostByUUID;
 use LksKndb\Php2\http\Actions\FindUserByUsername;
+use LksKndb\Php2\http\Actions\SaveComment;
+use LksKndb\Php2\http\Actions\SavePost;
+use LksKndb\Php2\http\Actions\SaveUser;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
-use LksKndb\Php2\http\SuccessfulResponse;
+use LksKndb\Php2\Repositories\CommentsRepositories\SqliteCommentsRepository;
+use LksKndb\Php2\Repositories\PostsRepositories\SqlitePostsRepository;
 use LksKndb\Php2\Repositories\UsersRepositories\SqliteUsersRepository;
+use LksKndb\Php2\Exceptions\HttpException;
 
 require_once __DIR__.'/vendor/autoload.php';
 
@@ -14,21 +23,50 @@ $request = new Request(
     file_get_contents('php://input')
 );
 
-//$param = $request->query('some_param');
-//$header = $request->header('Some-Header');
-//$path = $request->path();
+$connection = new PDO('sqlite:'.__DIR__.'/db.sqlite');
+$commentsRepo = new SqliteCommentsRepository($connection);
 
-//echo 'Hello from PHP!';
-// Cookie: XDEBUG_SESSION=start
+// Получаем действие
+try {
+    $path = $request->path();
+} catch (HttpException $e) {
+    (new ErrorResponse($e->getMessage()))->send();
+}
 
+// Получаем метод
+try {
+    $method = $request->method();
+} catch (HttpException $e) {
+    (new ErrorResponse($e->getMessage()))->send();
+}
 
-//$response = new SuccessfulResponse([
-//    'message' => 'Hello from PHP!'
-//]);
-//$response = new ErrorResponse('Error!');
-//$response->send();
+// Роутер
+$routes = [
+    'POST' => [
+        '/user/save' => new SaveUser(new SqliteUsersRepository($connection)),
+        '/post/save' => new SavePost(new SqlitePostsRepository($connection)),
+        '/comment/save' => new SaveComment(new SqliteCommentsRepository($connection))
+    ],
+    'GET' => [
+        '/user/find' => new FindUserByUsername(new SqliteUsersRepository($connection)),
+        '/post/find' => new FindPostByUUID(new SqlitePostsRepository($connection)),
+        '/comment/find' => new FindCommentByUUID(new SqliteCommentsRepository($connection))
+    ],
+    'DELETE' => [
+        '/post' => new DeletePost(new SqlitePostsRepository($connection)),
+        '/comment' => new DeleteComment(new SqliteCommentsRepository($connection))
+    ]
+];
 
-$usersRepo = new SqliteUsersRepository(new PDO('sqlite:' . __DIR__ . '/blog.sqlite'));
-$action = new FindUserByUsername($usersRepo);
+if(!array_key_exists($path, $routes[$method])){
+    (new ErrorResponse("Not found"))->send();
+}
 
+$action = $routes[$method][$path];
+
+try {
+    $action->handle($request)->send();
+} catch (Exception $e){
+    (new ErrorResponse($e->getMessage()))->send();
+}
 
