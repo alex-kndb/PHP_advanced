@@ -1,11 +1,12 @@
 <?php
 
-namespace LksKndb\Php2\http\Actions;
+namespace LksKndb\Php2\http\Actions\Comment;
 
 use LksKndb\Php2\Classes\UUID;
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use LksKndb\Php2\Exceptions\User\UserNotFoundException;
+use LksKndb\Php2\http\Actions\ActionInterface;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
@@ -35,8 +36,8 @@ class FindCommentByUUID implements ActionInterface
 
         return new SuccessfulResponse([
             'uuid' => (string)$comment->getUuid(),
-            'post' => (string)$comment->getPost(),
-            'author' => (string)$comment->getAuthor(),
+            'post' => (string)$comment->getPost()->getPost(),
+            'author' => (string)$comment->getAuthor()->getUUID(),
             'text' => $comment->getText(),
         ]);
     }

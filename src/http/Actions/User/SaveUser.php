@@ -1,12 +1,13 @@
 <?php
 
-namespace LksKndb\Php2\http\Actions;
+namespace LksKndb\Php2\http\Actions\User;
 
 use DateTimeImmutable;
 use LksKndb\Php2\Classes\Name;
 use LksKndb\Php2\Classes\User;
 use LksKndb\Php2\Classes\UUID;
 use LksKndb\Php2\Exceptions\HttpException;
+use LksKndb\Php2\http\Actions\ActionInterface;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
@@ -32,7 +33,7 @@ class SaveUser implements ActionInterface
                 ),
                 new DateTimeImmutable()
             );
-        } catch (HttpException $e) {
+        } catch (HttpException | \JsonException $e) {
             return new ErrorResponse($e->getMessage());
         }
 

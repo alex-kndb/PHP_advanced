@@ -2,7 +2,10 @@
 
 namespace LksKndb\Php2\Repositories\PostsRepositories;
 
+use DateTimeImmutable;
+use LksKndb\Php2\Classes\Name;
 use LksKndb\Php2\Classes\Post;
+use LksKndb\Php2\Classes\User;
 use LksKndb\Php2\Classes\UUID;
 use LksKndb\Php2\Exceptions\Posts\PostNotFoundException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
@@ -22,7 +25,7 @@ class SqlitePostsRepository implements PostsRepositoriesInterface
         );
         $statement->execute([
             ':uuid' => $post->getPost(),
-            ':author' => $post->getAuthor(),
+            ':author' => $post->getAuthor()->getUUID(),
             ':title' => $post->getTitle(),
             ':text' => $post->getText(),
         ]);
@@ -35,7 +38,7 @@ class SqlitePostsRepository implements PostsRepositoriesInterface
     public function getPostByUUID(UUID $uuid): Post
     {
         $statement = $this->connection->prepare(
-            'SELECT * FROM posts WHERE uuid = :uuid'
+            'SELECT posts.uuid,posts.author,posts.title,posts.text,users.first_name,users.last_name,users.username,users.registration FROM posts INNER JOIN users ON posts.author=users.uuid WHERE posts.uuid=:uuid'
         );
         $statement->execute([
             ':uuid' => (string)$uuid,
@@ -56,9 +59,18 @@ class SqlitePostsRepository implements PostsRepositoriesInterface
 
         return new Post(
             new UUID($result['uuid']),
-            new UUID($result['author']),
+            new User(
+                new UUID($result['author']),
+                new Name(
+                    $result['first_name'],
+                    $result['last_name'],
+                    $result['username']
+                ),
+                DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
+            ),
             $result['title'],
-            $result['text']);
+            $result['text']
+        );
     }
 
     public function deletePost(UUID $uuid): void

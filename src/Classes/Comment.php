@@ -6,8 +6,8 @@ class Comment
 {
     public function __construct(
         private UUID $uuid,
-        private UUID $post,
-        private UUID $author,
+        private Post $post,
+        private User $author,
         private string $text
     ){}
 
@@ -20,17 +20,17 @@ class Comment
     }
 
     /**
-     * @return UUID
+     * @return Post
      */
-    public function getPost(): UUID
+    public function getPost(): Post
     {
         return $this->post;
     }
 
     /**
-     * @return UUID
+     * @return User
      */
-    public function getAuthor(): UUID
+    public function getAuthor(): User
     {
         return $this->author;
     }
@@ -46,8 +46,8 @@ class Comment
     public function __toString(): string
     {
         return 'Comment UUID: '.$this->getUuid().PHP_EOL.
-            'Post UUID: '.$this->getPost().PHP_EOL.
-            'Author UUID: '.$this->getAuthor().PHP_EOL.
+            'Post: '.$this->getPost()->getUuid().PHP_EOL.
+            'Author: '.$this->getAuthor()->getName().PHP_EOL.
             'Text: '.$this->getText().PHP_EOL;
     }
 

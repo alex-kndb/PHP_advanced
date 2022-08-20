@@ -13,7 +13,7 @@ use LksKndb\Php2\Repositories\CommentsRepositories\SqliteCommentsRepository;
 use LksKndb\Php2\Repositories\UsersRepositories\SqliteUsersRepository;
 
 $faker = Faker\Factory::create('ru_RU');
-$connection = new PDO('sqlite:'.__DIR__.'/db.sqlite');
+$connection = new PDO('sqlite:'.__DIR__.'/blog.sqlite');
 
 $commentsRepo = new SqliteCommentsRepository($connection);
 $command = new CreateCommentCommand($commentsRepo);

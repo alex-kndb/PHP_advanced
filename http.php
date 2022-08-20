@@ -1,13 +1,13 @@
 <?php
 
-use LksKndb\Php2\http\Actions\DeleteComment;
-use LksKndb\Php2\http\Actions\DeletePost;
-use LksKndb\Php2\http\Actions\FindCommentByUUID;
-use LksKndb\Php2\http\Actions\FindPostByUUID;
-use LksKndb\Php2\http\Actions\FindUserByUsername;
-use LksKndb\Php2\http\Actions\SaveComment;
-use LksKndb\Php2\http\Actions\SavePost;
-use LksKndb\Php2\http\Actions\SaveUser;
+use LksKndb\Php2\http\Actions\Comment\DeleteComment;
+use LksKndb\Php2\http\Actions\Post\DeletePost;
+use LksKndb\Php2\http\Actions\Comment\FindCommentByUUID;
+use LksKndb\Php2\http\Actions\Post\FindPostByUUID;
+use LksKndb\Php2\http\Actions\User\FindUserByUsername;
+use LksKndb\Php2\http\Actions\Comment\SaveComment;
+use LksKndb\Php2\http\Actions\Post\SavePost;
+use LksKndb\Php2\http\Actions\User\SaveUser;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\Repositories\CommentsRepositories\SqliteCommentsRepository;
@@ -23,7 +23,7 @@ $request = new Request(
     file_get_contents('php://input')
 );
 
-$connection = new PDO('sqlite:'.__DIR__.'/db.sqlite');
+$connection = new PDO('sqlite:'.__DIR__.'/blog.sqlite');
 $commentsRepo = new SqliteCommentsRepository($connection);
 
 // Получаем действие
@@ -44,8 +44,15 @@ try {
 $routes = [
     'POST' => [
         '/user/save' => new SaveUser(new SqliteUsersRepository($connection)),
-        '/post/save' => new SavePost(new SqlitePostsRepository($connection)),
-        '/comment/save' => new SaveComment(new SqliteCommentsRepository($connection))
+        '/post/save' => new SavePost(
+            new SqlitePostsRepository($connection),
+            new SqliteUsersRepository($connection)
+        ),
+        '/comment/save' => new SaveComment(
+            new SqliteCommentsRepository($connection),
+            new SqlitePostsRepository($connection),
+            new SqliteUsersRepository($connection)
+        )
     ],
     'GET' => [
         '/user/find' => new FindUserByUsername(new SqliteUsersRepository($connection)),

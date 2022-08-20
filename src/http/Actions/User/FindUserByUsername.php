@@ -1,9 +1,10 @@
 <?php
 
-namespace LksKndb\Php2\http\Actions;
+namespace LksKndb\Php2\http\Actions\User;
 
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\Exceptions\User\UserNotFoundException;
+use LksKndb\Php2\http\Actions\ActionInterface;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;

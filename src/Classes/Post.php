@@ -6,7 +6,7 @@ class Post
 {
     public function __construct(
         private readonly UUID   $post,
-        private readonly UUID   $author,
+        private readonly User   $author,
         private readonly string $title,
         private readonly string $text
     ){}
@@ -22,7 +22,7 @@ class Post
     /**
      * @return UUID
      */
-    public function getAuthor(): UUID
+    public function getAuthor(): User
     {
         return $this->author;
     }
@@ -46,7 +46,7 @@ class Post
     public function __toString(): string
     {
         return 'Post UUID: '.$this->getPost().PHP_EOL.
-            'Author UUID: '.$this->getAuthor().PHP_EOL.
+            'Author: '.$this->getAuthor()->getName().PHP_EOL.
             'Title: '.$this->getTitle().PHP_EOL.
             'Text: '.$this->getText().PHP_EOL;
     }

@@ -2,6 +2,10 @@
 
 namespace LksKndb\Php2\Repositories\CommentsRepositories;
 
+use DateTimeImmutable;
+use LksKndb\Php2\Classes\Name;
+use LksKndb\Php2\Classes\Post;
+use LksKndb\Php2\Classes\User;
 use LksKndb\Php2\Classes\UUID;
 use LksKndb\Php2\Classes\Comment;
 use LksKndb\Php2\Exceptions\Comment\CommentNotFoundException;
@@ -22,8 +26,8 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
         );
         $statement->execute([
             ':uuid' => $comment->getUuid(),
-            ':post' => $comment->getPost(),
-            ':author' => $comment->getAuthor(),
+            ':post' => $comment->getPost()->getUuid(),
+            ':author' => $comment->getAuthor()->getUuid(),
             ':text' => $comment->getText(),
         ]);
     }
@@ -35,7 +39,12 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
     public function getCommentByUUID(UUID $uuid): Comment
     {
         $statement = $this->connection->prepare(
-            'SELECT * FROM comments WHERE uuid = :uuid'
+            'SELECT * 
+                   FROM comments 
+                   INNER JOIN posts ON comments.post = posts.uuid
+                   INNER JOIN users ON comments.author = users.uuid
+                   WHERE comments.uuid=:uuid'
+
         );
         $statement->execute([
             ':uuid' => (string)$uuid,
@@ -54,11 +63,28 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
             throw new CommentNotFoundException("DB: comment (UUID: $uuid) not found!");
         }
 
+        $user = new User(
+            new UUID($result['users.uuid']),
+            new Name(
+                $result['users.first_name'],
+                $result['users.last_name'],
+                $result['users.username']
+            ),
+            DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
+        );
+
+        $post = new Post(
+            new UUID($result['posts.uuid']),
+            $user,
+            $result['posts.title'],
+            $result['posts.text']
+        );
+
         return new Comment(
-            new UUID($result['uuid']),
-            new UUID($result['post']),
-            new UUID($result['author']),
-            $result['text']);
+            new UUID($result['comments.uuid']),
+            $post,
+            $user,
+            $result['comments.text']);
     }
 
     public function deleteComment(UUID $uuid): void
