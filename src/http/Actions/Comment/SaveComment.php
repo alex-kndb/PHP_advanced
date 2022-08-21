@@ -27,7 +27,7 @@ class SaveComment implements ActionInterface
     public function handle(Request $request): Response
     {
         try {
-            $author_id = $request->query('author');
+            $author_id = $request->jsonBodyField('author');
         } catch (HttpException $e) {
             return new ErrorResponse($e->getMessage());
         }
@@ -39,7 +39,7 @@ class SaveComment implements ActionInterface
         }
 
         try {
-            $post_id = $request->query('post');
+            $post_id = $request->jsonBodyField('post');
         } catch (HttpException $e) {
             return new ErrorResponse($e->getMessage());
         }

@@ -22,11 +22,11 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
     public function saveComment(Comment $comment): void
     {
         $statement = $this->connection->prepare(
-            'INSERT INTO comments (uuid, post, author, text) VALUES (:uuid, :post, :author, :text)'
+            'INSERT INTO comments (id, post, author, comment) VALUES (:uuid, :post, :author, :text)'
         );
         $statement->execute([
             ':uuid' => $comment->getUuid(),
-            ':post' => $comment->getPost()->getUuid(),
+            ':post' => $comment->getPost()->getPost(),
             ':author' => $comment->getAuthor()->getUuid(),
             ':text' => $comment->getText(),
         ]);
@@ -39,12 +39,11 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
     public function getCommentByUUID(UUID $uuid): Comment
     {
         $statement = $this->connection->prepare(
-            'SELECT * 
-                   FROM comments 
-                   INNER JOIN posts ON comments.post = posts.uuid
-                   INNER JOIN users ON comments.author = users.uuid
-                   WHERE comments.uuid=:uuid'
-
+            'SELECT *
+                    FROM comments
+                    LEFT JOIN posts ON comments.post=posts.uuid
+                    LEFT JOIN  users ON comments.author=users.uuid
+                    WHERE comments.id=:uuid'
         );
         $statement->execute([
             ':uuid' => (string)$uuid,
@@ -64,36 +63,36 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
         }
 
         $user = new User(
-            new UUID($result['users.uuid']),
+            new UUID($result['uuid']),
             new Name(
-                $result['users.first_name'],
-                $result['users.last_name'],
-                $result['users.username']
+                $result['first_name'],
+                $result['last_name'],
+                $result['username']
             ),
             DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
         );
 
         $post = new Post(
-            new UUID($result['posts.uuid']),
+            new UUID($result['post']),
             $user,
-            $result['posts.title'],
-            $result['posts.text']
+            $result['title'],
+            $result['text']
         );
 
         return new Comment(
-            new UUID($result['comments.uuid']),
+            new UUID($result['id']),
             $post,
             $user,
-            $result['comments.text']);
+            $result['comment']);
     }
 
-    public function deleteComment(UUID $uuid): void
+    public function deleteComment(UUID $id): void
     {
         $statement = $this->connection->prepare(
-            'DELETE FROM comments WHERE uuid = :uuid'
+            'DELETE FROM comments WHERE id = :id'
         );
         $statement->execute([
-            ':uuid' => (string)$uuid,
+            ':id' => (string)$id,
         ]);
     }
 }
