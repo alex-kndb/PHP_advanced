@@ -1,6 +1,9 @@
 <?php
 
 use LksKndb\Php2\http\Actions\Comment\DeleteComment;
+use LksKndb\Php2\http\Actions\Like\DeleteLike;
+use LksKndb\Php2\http\Actions\Like\FindLikeByUUID;
+use LksKndb\Php2\http\Actions\Like\SaveLike;
 use LksKndb\Php2\http\Actions\Post\DeletePost;
 use LksKndb\Php2\http\Actions\Comment\FindCommentByUUID;
 use LksKndb\Php2\http\Actions\Post\FindPostByUUID;
@@ -15,7 +18,7 @@ use LksKndb\Php2\Repositories\PostsRepositories\SqlitePostsRepository;
 use LksKndb\Php2\Repositories\UsersRepositories\SqliteUsersRepository;
 use LksKndb\Php2\Exceptions\HttpException;
 
-require_once __DIR__.'/vendor/autoload.php';
+$container = require_once __DIR__.'/bootstrap.php';
 
 $request = new Request(
     $_GET,
@@ -40,28 +43,23 @@ try {
     (new ErrorResponse($e->getMessage()))->send();
 }
 
-// Роутер
 $routes = [
     'POST' => [
-        '/user/save' => new SaveUser(new SqliteUsersRepository($connection)),
-        '/post/save' => new SavePost(
-            new SqlitePostsRepository($connection),
-            new SqliteUsersRepository($connection)
-        ),
-        '/comment/save' => new SaveComment(
-            new SqliteCommentsRepository($connection),
-            new SqlitePostsRepository($connection),
-            new SqliteUsersRepository($connection)
-        )
+        '/user/create' => SaveUser::class,
+        '/post/create' => SavePost::class,
+        '/comment/create' => SaveComment::class,
+        '/like/create' => SaveLike::class
     ],
     'GET' => [
-        '/user/find' => new FindUserByUsername(new SqliteUsersRepository($connection)),
-        '/post/find' => new FindPostByUUID(new SqlitePostsRepository($connection)),
-        '/comment/find' => new FindCommentByUUID(new SqliteCommentsRepository($connection))
+        '/user/find' => FindUserByUsername::class,
+        '/post/find' => FindPostByUUID::class,
+        '/comment/find' => FindCommentByUUID::class,
+        '/like/find' => FindLikeByUUID::class
     ],
     'DELETE' => [
-        '/post' => new DeletePost(new SqlitePostsRepository($connection)),
-        '/comment' => new DeleteComment(new SqliteCommentsRepository($connection))
+        '/post' => DeletePost::class,
+        '/comment' => DeleteComment::class,
+        '/like' => DeleteLike::class
     ]
 ];
 
@@ -69,8 +67,8 @@ if(!array_key_exists($path, $routes[$method])){
     (new ErrorResponse("Not found"))->send();
 }
 
-$action = $routes[$method][$path];
-
+$actionClassName = $routes[$method][$path];
+$action = $container->get($actionClassName);
 try {
     $action->handle($request)->send();
 } catch (Exception $e){
