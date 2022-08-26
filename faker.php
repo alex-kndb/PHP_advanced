@@ -2,7 +2,7 @@
 
 require_once __DIR__.'/vendor/autoload.php';
 
-use LksKndb\Php2\Classes\UUID;
+use LksKndb\Php2\Blog\UUID;
 
 $faker = Faker\Factory::create('ru_RU');
 //$date = new DateTimeImmutable();

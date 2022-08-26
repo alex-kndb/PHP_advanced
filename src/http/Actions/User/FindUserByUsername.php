@@ -9,7 +9,7 @@ use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
-use LksKndb\Php2\Repositories\UsersRepositories\UsersRepositoriesInterface;
+use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
 
 class FindUserByUsername implements ActionInterface
 {

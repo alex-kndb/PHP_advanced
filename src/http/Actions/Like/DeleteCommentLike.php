@@ -1,8 +1,9 @@
 <?php
 
-namespace LksKndb\Php2\http\Actions\Post;
+namespace LksKndb\Php2\http\Actions\Like;
 
-use LksKndb\Php2\blog\UUID;
+use LksKndb\Php2\Blog\Repositories\LikesRepositories\CommentLikesRepositoriesInterface;
+use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use LksKndb\Php2\http\Actions\ActionInterface;
@@ -10,12 +11,11 @@ use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\SuccessfulResponse;
-use LksKndb\Php2\blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
 
-class DeletePost implements ActionInterface
+class DeleteCommentLike implements ActionInterface
 {
     public function __construct(
-        private PostsRepositoriesInterface $postsRepository
+        private CommentLikesRepositoriesInterface $CommentLikesRepository
     ) {
     }
 
@@ -27,7 +27,7 @@ class DeletePost implements ActionInterface
             (new ErrorResponse($e->getMessage()))->send();
         }
 
-        $this->postsRepository->deletePost($uuid);
+        $this->CommentLikesRepository->deleteCommentLike($uuid);
 
         return new SuccessfulResponse(
             ['uuid' => (string)$uuid]

@@ -1,22 +1,22 @@
 <?php
 
-namespace LksKndb\Php2\http\Actions\Post;
+namespace LksKndb\Php2\http\Actions\Like;
 
+use LksKndb\Php2\Blog\Repositories\LikesRepositories\CommentLikesRepositoriesInterface;
 use LksKndb\Php2\Blog\UUID;
+use LksKndb\Php2\Exceptions\Comment\CommentNotFoundException;
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
-use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use LksKndb\Php2\http\Actions\ActionInterface;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
-use LksKndb\Php2\Blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
 
-class FindPostByUUID implements ActionInterface
+class FindCommentLikeByUUID implements ActionInterface
 {
     public function __construct(
-        private PostsRepositoriesInterface $postsRepository
+        private CommentLikesRepositoriesInterface $commentLikesRepository
     ) {
     }
 
@@ -29,16 +29,15 @@ class FindPostByUUID implements ActionInterface
         }
 
         try {
-            $post = $this->postsRepository->getPostByUUID(new UUID($uuid));
-        } catch (UserNotFoundException|InvalidUuidException $e){
+            $like = $this->commentLikesRepository->getCommentLikeByUUID(new UUID($uuid));
+        } catch (CommentNotFoundException|InvalidUuidException $e){
             return new ErrorResponse($e->getMessage());
         }
 
         return new SuccessfulResponse([
-            'uuid' => (string)$post->getPost(),
-            'author' => (string)$post->getAuthor()->getUUID(),
-            'title' => $post->getTitle(),
-            'text' => $post->getText(),
+            'uuid' => (string)$like->getUuid(),
+            'comment' => (string)$like->getComment()->getUuid(),
+            'author' => $like->getUser()->getName()->getUsername(),
         ]);
     }
 }

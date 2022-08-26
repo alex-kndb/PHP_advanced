@@ -1,21 +1,23 @@
 <?php
 
 use LksKndb\Php2\http\Actions\Comment\DeleteComment;
-use LksKndb\Php2\http\Actions\Like\DeleteLike;
-use LksKndb\Php2\http\Actions\Like\FindLikeByUUID;
-use LksKndb\Php2\http\Actions\Like\SaveLike;
+use LksKndb\Php2\http\Actions\Like\CreateCommentLike;
+use LksKndb\Php2\http\Actions\Like\CreatePostLike;
+use LksKndb\Php2\http\Actions\Like\DeleteCommentLike;
+use LksKndb\Php2\http\Actions\Like\DeletePostLike;
+use LksKndb\Php2\http\Actions\Like\FindPostLikeByUUID;
+use LksKndb\Php2\http\Actions\Like\GetLikesByCommentUUID;
+use LksKndb\Php2\http\Actions\Like\GetLikesByPostUUID;
 use LksKndb\Php2\http\Actions\Post\DeletePost;
 use LksKndb\Php2\http\Actions\Comment\FindCommentByUUID;
 use LksKndb\Php2\http\Actions\Post\FindPostByUUID;
 use LksKndb\Php2\http\Actions\User\FindUserByUsername;
-use LksKndb\Php2\http\Actions\Comment\SaveComment;
-use LksKndb\Php2\http\Actions\Post\SavePost;
-use LksKndb\Php2\http\Actions\User\SaveUser;
+use LksKndb\Php2\http\Actions\Comment\CreateComment;
+use LksKndb\Php2\http\Actions\Post\CreatePost;
+use LksKndb\Php2\http\Actions\User\CreateUser;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
-use LksKndb\Php2\Repositories\CommentsRepositories\SqliteCommentsRepository;
-use LksKndb\Php2\Repositories\PostsRepositories\SqlitePostsRepository;
-use LksKndb\Php2\Repositories\UsersRepositories\SqliteUsersRepository;
+use LksKndb\Php2\Blog\Repositories\CommentsRepositories\SqliteCommentsRepository;
 use LksKndb\Php2\Exceptions\HttpException;
 
 $container = require_once __DIR__.'/bootstrap.php';
@@ -45,21 +47,26 @@ try {
 
 $routes = [
     'POST' => [
-        '/user/create' => SaveUser::class,
-        '/post/create' => SavePost::class,
-        '/comment/create' => SaveComment::class,
-        '/like/create' => SaveLike::class
+        '/user/create' => CreateUser::class,
+        '/post/create' => CreatePost::class,
+        '/comment/create' => CreateComment::class,
+        '/post/like/create' => CreatePostLike::class,
+        '/comment/like/create' => CreateCommentLike::class,
     ],
     'GET' => [
         '/user/find' => FindUserByUsername::class,
         '/post/find' => FindPostByUUID::class,
         '/comment/find' => FindCommentByUUID::class,
-        '/like/find' => FindLikeByUUID::class
+        '/post/like/find' => FindPostLikeByUUID::class,
+        '/comment/like/find' => FindPostLikeByUUID::class,
+        '/post/likes' => GetLikesByPostUUID::class,
+        '/comment/likes/' => GetLikesByCommentUUID::class
     ],
     'DELETE' => [
         '/post' => DeletePost::class,
         '/comment' => DeleteComment::class,
-        '/like' => DeleteLike::class
+        '/post/like' => DeletePostLike::class,
+        '/comment/like' => DeleteCommentLike::class
     ]
 ];
 

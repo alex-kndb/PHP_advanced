@@ -1,6 +1,6 @@
 <?php
 
-namespace LksKndb\Php2\Repositories\LikesRepositories;
+namespace LksKndb\Php2\Exception\Likes;
 
 class LikeNotFoundException extends  \Exception
 {
