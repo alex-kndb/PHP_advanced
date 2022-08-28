@@ -13,16 +13,20 @@ use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
 use LksKndb\Php2\Blog\Repositories\LikesRepositories\PostLikesRepositoriesInterface;
+use Psr\Log\LoggerInterface;
 
 class GetLikesByCommentUUID implements ActionInterface
 {
     public function __construct(
-        private CommentLikesRepositoriesInterface $commentLikesRepository
+        private CommentLikesRepositoriesInterface $commentLikesRepository,
+        private LoggerInterface $logger
     ) {
     }
 
     public function handle(Request $request): Response
     {
+        $this->logger->info("All comment likes search http-action started");
+
         try {
             $comment = $request->query('uuid');
         } catch (HttpException $e){
@@ -36,13 +40,19 @@ class GetLikesByCommentUUID implements ActionInterface
         }
 
         $likesArray = [];
+        $uuidsArr = [];
         foreach ($likes as $like){
+            $uuid = (string)$like->getUuid();
+            $uuidsArr[] = $uuid;
             $likesArray[] = [
-                'uuid' => (string)$like->getUuid(),
+                'uuid' => $uuid,
                 'comment' => (string)$like->getComment()->getUuid(),
                 'author' => $like->getUser()->getName()->getUsername(),
             ];
         }
+
+        $this->logger->info("All comment likes found: ". implode(', ', $uuidsArr));
+
         return new SuccessfulResponse($likesArray);
     }
 }

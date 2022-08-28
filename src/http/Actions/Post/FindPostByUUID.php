@@ -12,16 +12,20 @@ use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
 use LksKndb\Php2\Blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
+use Psr\Log\LoggerInterface;
 
 class FindPostByUUID implements ActionInterface
 {
     public function __construct(
-        private PostsRepositoriesInterface $postsRepository
+        private PostsRepositoriesInterface $postsRepository,
+        private LoggerInterface $logger
     ) {
     }
 
     public function handle(Request $request): Response
     {
+        $this->logger->info("Post search http-action started");
+
         try {
             $uuid = $request->query('uuid');
         } catch (HttpException $e){
@@ -33,6 +37,8 @@ class FindPostByUUID implements ActionInterface
         } catch (UserNotFoundException|InvalidUuidException $e){
             return new ErrorResponse($e->getMessage());
         }
+
+        $this->logger->info("Post found: $uuid");
 
         return new SuccessfulResponse([
             'uuid' => (string)$post->getPost(),

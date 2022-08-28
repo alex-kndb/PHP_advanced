@@ -16,6 +16,7 @@ use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
 use LksKndb\Php2\Blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
+use Psr\Log\LoggerInterface;
 
 class CreatePost implements ActionInterface
 {
@@ -23,7 +24,8 @@ class CreatePost implements ActionInterface
 
     public function __construct(
         private PostsRepositoriesInterface $postsRepository,
-        private IdentificationInterface $identification
+        private IdentificationInterface $identification,
+        private LoggerInterface $logger
     ) {
     }
 
@@ -33,12 +35,14 @@ class CreatePost implements ActionInterface
      */
     public function handle(Request $request): Response
     {
+        $this->logger->info("Post create http-action started");
 
         $user = $this->identification->user($request);
 
+        $uuid = UUID::createUUID();
         try {
             $post = new Post(
-                UUID::createUUID(),
+                $uuid,
                 $user,
                 $request->jsonBodyField('title'),
                 $request->jsonBodyField('text'),
@@ -48,6 +52,8 @@ class CreatePost implements ActionInterface
         }
 
         $this->postsRepository->savePost($post);
+
+        $this->logger->info("Post created: $uuid");
 
         return new SuccessfulResponse(
             ['uuid' => (string)($post->getPost())]

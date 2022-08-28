@@ -20,6 +20,7 @@ use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\Blog\Repositories\CommentsRepositories\SqliteCommentsRepository;
 use LksKndb\Php2\Exceptions\HttpException;
+use Psr\Log\LoggerInterface;
 
 $container = require_once __DIR__.'/bootstrap.php';
 
@@ -32,11 +33,15 @@ $request = new Request(
 $connection = new PDO('sqlite:'.__DIR__.'/blog.sqlite');
 $commentsRepo = new SqliteCommentsRepository($connection);
 
+$logger = $container->get(LoggerInterface::class);
+
 try {
     $path = $request->path();
     $method = $request->method();
 } catch (HttpException $e) {
+    $logger->warning($e->getMessage());
     (new ErrorResponse($e->getMessage()))->send();
+    return;
 }
 
 $routes = [
@@ -64,15 +69,21 @@ $routes = [
     ]
 ];
 
-if(!array_key_exists($path, $routes[$method])){
-    (new ErrorResponse("Not found"))->send();
+if (!array_key_exists($method, $routes) || !array_key_exists($path, $routes[$method])){
+    $mess = "Route not found: $method $path";
+    $logger->notice($mess);
+    (new ErrorResponse($mess))->send();
+    return;
 }
 
 $actionClassName = $routes[$method][$path];
 $action = $container->get($actionClassName);
+
 try {
     $action->handle($request)->send();
 } catch (Exception $e){
+    $logger->error($e->getMessage(), ['exception' => $e]);
     (new ErrorResponse($e->getMessage()))->send();
+    return;
 }
 

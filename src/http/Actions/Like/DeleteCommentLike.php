@@ -11,16 +11,20 @@ use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\SuccessfulResponse;
+use Psr\Log\LoggerInterface;
 
 class DeleteCommentLike implements ActionInterface
 {
     public function __construct(
-        private CommentLikesRepositoriesInterface $CommentLikesRepository
+        private CommentLikesRepositoriesInterface $CommentLikesRepository,
+        private LoggerInterface $logger
     ) {
     }
 
     public function handle(Request $request): Response
     {
+        $this->logger->info("Comment like delete http-action started");
+
         try {
             $uuid = new UUID($request->query('uuid'));
         } catch (HttpException | InvalidUuidException $e) {
@@ -28,6 +32,8 @@ class DeleteCommentLike implements ActionInterface
         }
 
         $this->CommentLikesRepository->deleteCommentLike($uuid);
+
+        $this->logger->info("Comment like deleted: $uuid");
 
         return new SuccessfulResponse(
             ['uuid' => (string)$uuid]

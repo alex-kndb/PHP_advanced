@@ -14,18 +14,22 @@ use LksKndb\Php2\http\SuccessfulResponse;
 use LksKndb\Php2\Blog\Repositories\CommentsRepositories\CommentsRepositoriesInterface;
 use LksKndb\Php2\Blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
 use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
+use Psr\Log\LoggerInterface;
 
 class CreateComment implements ActionInterface
 {
     public function __construct(
         private commentsRepositoriesInterface $commentsRepository,
         private postsRepositoriesInterface $postsRepository,
-        private usersRepositoriesInterface $usersRepository
+        private usersRepositoriesInterface $usersRepository,
+        private LoggerInterface $logger
     ) {
     }
 
     public function handle(Request $request): Response
     {
+        $this->logger->info("Comment create http-action started");
+
         try {
             $author_id = $request->jsonBodyField('author');
         } catch (HttpException $e) {
@@ -50,9 +54,11 @@ class CreateComment implements ActionInterface
             return new ErrorResponse($e->getMessage());
         }
 
+        $uuid = UUID::createUUID();
+
         try {
             $comment = new Comment(
-                UUID::createUUID(),
+                $uuid,
                 $post,
                 $user,
                 $request->jsonBodyField('text'),
@@ -62,6 +68,8 @@ class CreateComment implements ActionInterface
         }
 
         $this->commentsRepository->saveComment($comment);
+
+        $this->logger->info("Comment created: $uuid");
 
         return new SuccessfulResponse(
             ['uuid' => (string)($comment->getUuid())]

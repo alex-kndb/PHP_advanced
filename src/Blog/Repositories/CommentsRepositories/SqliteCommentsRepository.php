@@ -12,11 +12,13 @@ use LksKndb\Php2\Exceptions\Comment\CommentNotFoundException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use PDO;
 use PDOStatement;
+use Psr\Log\LoggerInterface;
 
 class SqliteCommentsRepository implements CommentsRepositoriesInterface
 {
     public function __construct(
-        private PDO $connection
+        private PDO $connection,
+        private LoggerInterface $logger
     ){}
 
     public function saveComment(Comment $comment): void
@@ -30,6 +32,8 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
             ':author' => $comment->getAuthor()->getUuid(),
             ':text' => $comment->getText(),
         ]);
+
+        $this->logger->info("SqliteCommentRepo -> comment created: {$comment->getUuid()}");
     }
 
     /**
@@ -59,7 +63,9 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
     {
         $result = $statement->fetch(PDO::FETCH_ASSOC);
         if(!$result) {
-            throw new CommentNotFoundException("DB: comment (UUID: $uuid) not found!");
+            $this->logger->warning("DB: comment (UUID: $uuid) not found!");
+            // throw new CommentNotFoundException("DB: comment (UUID: $uuid) not found!");
+            exit;
         }
 
         $comment_author = new User(

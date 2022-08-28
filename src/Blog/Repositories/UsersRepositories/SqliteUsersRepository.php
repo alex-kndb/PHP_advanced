@@ -12,11 +12,13 @@ use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use LksKndb\Php2\Exceptions\UserAlreadyExistException;
 use PDO;
 use PDOStatement;
+use Psr\Log\LoggerInterface;
 
 class SqliteUsersRepository implements UsersRepositoriesInterface
 {
     public function __construct(
-        private PDO $connection
+        private PDO $connection,
+        private LoggerInterface $logger
     ){}
 
     /**
@@ -29,7 +31,10 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
     {
         $username = $user->getName()->getUsername();
         if($this->isUserExist($username)){
-            throw new UserAlreadyExistException("User with such username is already exist: $username");
+            $mess = "User with such username is already exist: $username";
+            $this->logger->warning($mess);
+            // throw new UserAlreadyExistException($mess);
+            return;
         }
         $statement = $this->connection->prepare(
             'INSERT INTO users (uuid, username, first_name,last_name, registration) VALUES (:uuid, :username, :first_name, :last_name, :registration)'
@@ -41,6 +46,8 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
             ':last_name' => $user->getName()->getLastName(),
             ':registration' => $user->getRegisteredOn()->format('Y-m-d\ H:i:s'),
         ]);
+
+        $this->logger->info("SqliteUserRepo -> user created: {$user->getUUID()}");
     }
 
     public function isUserExist(string $username) : bool
@@ -79,7 +86,9 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
     public function getUserByUsername(string $username): User
     {
         if(empty($username)){
-            throw new InvalidUsernameException("Username is empty!");
+           $this->logger->warning("Username is empty!");
+            // throw new InvalidUsernameException("Username is empty!");
+            exit;
         }
         $statement = $this->connection->prepare(
             'SELECT * FROM users WHERE username = :username'
@@ -89,7 +98,6 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
         ]);
 
         return $this->getUser($statement, $username);
-
     }
 
     /**
@@ -104,12 +112,18 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
             if(is_object($searchBy)){
                 $arr = explode('\\', get_class($searchBy));
                 if(array_pop($arr) === 'UUID'){
-                    throw new UserNotFoundException("User (UUID: $searchBy) not found into db");
+                    $this->logger->warning("User (UUID: $searchBy) not found into db");
+                    // throw new UserNotFoundException("User (UUID: $searchBy) not found into db");
+                    exit;
                 }
             }elseif(is_string($searchBy)){
-                throw new UserNotFoundException("User (Username: $searchBy) not found into db");
+                $this->logger->warning("User (Username: $searchBy) not found into db");
+                // throw new UserNotFoundException("User (Username: $searchBy) not found into db");
+                exit;
             }else{
-                throw new UserNotFoundException("DB: user searching error!");
+                $this->logger->error("DB: user searching error!");
+                // throw new UserNotFoundException("DB: user searching error!");
+                exit;
             }
         }
 

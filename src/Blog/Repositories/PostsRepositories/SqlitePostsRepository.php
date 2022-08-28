@@ -11,11 +11,13 @@ use LksKndb\Php2\Exceptions\Posts\PostNotFoundException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use PDO;
 use PDOStatement;
+use Psr\Log\LoggerInterface;
 
 class SqlitePostsRepository implements PostsRepositoriesInterface
 {
     public function __construct(
-        private PDO $connection
+        private PDO $connection,
+        private LoggerInterface $logger
     ){}
 
     public function savePost(Post $post): void
@@ -29,6 +31,8 @@ class SqlitePostsRepository implements PostsRepositoriesInterface
             ':title' => $post->getTitle(),
             ':text' => $post->getText(),
         ]);
+
+        $this->logger->info("SqlitePostRepo -> post created: {$post->getPost()}");
     }
 
     /**
@@ -54,7 +58,9 @@ class SqlitePostsRepository implements PostsRepositoriesInterface
     {
         $result = $statement->fetch(PDO::FETCH_ASSOC);
         if(!$result) {
-            throw new PostNotFoundException("DB: post (UUID: $uuid) not found!");
+            $this->logger->warning("DB: post (UUID: $uuid) not found!");
+            // throw new PostNotFoundException("DB: post (UUID: $uuid) not found!");
+            exit;
         }
 
         return new Post(

@@ -12,16 +12,20 @@ use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
 use LksKndb\Php2\Blog\Repositories\LikesRepositories\PostLikesRepositoriesInterface;
+use Psr\Log\LoggerInterface;
 
 class GetLikesByPostUUID implements ActionInterface
 {
     public function __construct(
-        private PostLikesRepositoriesInterface $postLikesRepository
+        private PostLikesRepositoriesInterface $postLikesRepository,
+        private LoggerInterface $logger
     ) {
     }
 
     public function handle(Request $request): Response
     {
+        $this->logger->info("All post likes search http-action started");
+
         try {
             $post = $request->query('uuid');
         } catch (HttpException $e){
@@ -35,13 +39,19 @@ class GetLikesByPostUUID implements ActionInterface
         }
 
         $likesArray = [];
+        $uuidsArr = [];
         foreach ($likes as $like){
+            $uuid = (string)$like->getUuid();
+            $uuidsArr[] = $uuid;
             $likesArray[] = [
-                'uuid' => (string)$like->getUuid(),
+                'uuid' => $uuid,
                 'post' => (string)$like->getPost()->getPost(),
                 'author' => $like->getUser()->getName()->getUsername(),
             ];
         }
+
+        $this->logger->info("All post likes found: ". implode(', ', $uuidsArr));
+
         return new SuccessfulResponse($likesArray);
     }
 }

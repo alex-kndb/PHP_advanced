@@ -13,11 +13,13 @@ use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use LksKndb\Php2\Exceptions\Likes\PostIsAlreadyLikedByThisUser;
 use PDO;
 use PDOStatement;
+use Psr\Log\LoggerInterface;
 
 class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
 {
     public function __construct(
-        private PDO $connection
+        private PDO $connection,
+        private LoggerInterface $logger
     ){}
 
     /**
@@ -28,7 +30,9 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
         $post = $like->getPost()->getPost();
         $user = $like->getUser()->getUUID();
         if($this->isPostAlreadyLiked($post, $user)){
-            throw new PostIsAlreadyLikedByThisUser("Post is already liked by this user: $user");
+            $this->logger->warning("Post is already liked by this user: $user");
+            // throw new PostIsAlreadyLikedByThisUser("Post is already liked by this user: $user");
+            return;
         }
         $statement = $this->connection->prepare(
             'INSERT INTO posts_likes (uuid, post, author) VALUES (:uuid, :post, :author)'
@@ -38,6 +42,8 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
             ':post' => $post,
             ':author' => $user
         ]);
+
+        $this->logger->info("SqlitePostLikeRepo -> post like created: {$like->getUuid()}");
     }
 
     public function isPostAlreadyLiked(UUID $post, UUID $user) : bool
@@ -80,7 +86,9 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
     {
         $result = $statement->fetch(PDO::FETCH_ASSOC);
         if(!$result) {
-            throw new LikeNotFoundException("DB: post/like (UUID: $uuid) not found!");
+            $this->logger->warning("DB: post/like (UUID: $uuid) not found!");
+            // throw new LikeNotFoundException("DB: post/like (UUID: $uuid) not found!");
+            exit;
         }
 
         $like_author = new User(
@@ -157,7 +165,6 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
         ]);
 
         $likes_result = $statement->fetchAll(PDO::FETCH_ASSOC);
-        //fetch(PDO::FETCH_ASSOC)
         $likes = [];
         foreach ($likes_result as $like){
             $likes[] = $this->getPostLikeByUUID(new UUID($like['uuid']));

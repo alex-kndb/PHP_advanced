@@ -10,16 +10,20 @@ use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
 use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
+use Psr\Log\LoggerInterface;
 
 class FindUserByUsername implements ActionInterface
 {
     public function __construct(
-        private UsersRepositoriesInterface $usersRepository
+        private UsersRepositoriesInterface $usersRepository,
+        private LoggerInterface $logger
     ) {
     }
 
     public function handle(Request $request): Response
     {
+        $this->logger->info("User search http-action started");
+
         try {
             $username = $request->query('username');
         } catch (HttpException $e){
@@ -31,6 +35,8 @@ class FindUserByUsername implements ActionInterface
         } catch (UserNotFoundException $e){
             return new ErrorResponse($e->getMessage());
         }
+
+        $this->logger->info("User found: $username");
 
         return new SuccessfulResponse([
             'uuid' => (string)$user->getUUID(),

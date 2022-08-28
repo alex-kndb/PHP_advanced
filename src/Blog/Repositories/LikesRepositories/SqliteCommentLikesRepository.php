@@ -14,11 +14,13 @@ use LksKndb\Php2\Exceptions\Likes\CommentIsAlreadyLikedByThisUser;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use PDO;
 use PDOStatement;
+use Psr\Log\LoggerInterface;
 
 class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
 {
     public function __construct(
-        private PDO $connection
+        private PDO $connection,
+        private LoggerInterface $logger
     ){}
 
     public function save(CommentLike $like): void
@@ -26,7 +28,9 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
         $comment = $like->getComment()->getUuid();
         $user = $like->getUser()->getUUID();
         if($this->isCommentAlreadyLiked($comment, $user)){
-            throw new CommentIsAlreadyLikedByThisUser("Comment is already liked by this user: $user");
+            $this->logger->warning("Comment is already liked by this user: $user");
+            // throw new CommentIsAlreadyLikedByThisUser("Comment is already liked by this user: $user");
+            return;
         }
         $statement = $this->connection->prepare(
             'INSERT INTO comments_likes (uuid, comment, user) VALUES (:uuid, :comment, :user)'
@@ -36,6 +40,8 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
             ':comment' => $comment,
             ':user' => $user
         ]);
+
+        $this->logger->info("SqliteCommentLikeRepo -> comment like created: {$like->getUuid()}");
     }
 
     public function isCommentAlreadyLiked(UUID $comment, UUID $user) : bool
@@ -78,7 +84,9 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
     {
         $result = $statement->fetch(PDO::FETCH_ASSOC);
         if(!$result) {
-            throw new LikeNotFoundException("DB: comment/like (UUID: $uuid) not found!");
+            $this->logger->warning("DB: comment/like (UUID: $uuid) not found!");
+            // throw new LikeNotFoundException("DB: comment/like (UUID: $uuid) not found!");
+            exit;
         }
 
         $comment_result = $this->query('comments', new UUID($result['comment']));

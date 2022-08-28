@@ -14,18 +14,22 @@ use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
 use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
+use Psr\Log\LoggerInterface;
 
 class CreateCommentLike implements ActionInterface
 {
     public function __construct(
         private CommentLikesRepositoriesInterface $commentLikesRepository,
         private CommentsRepositoriesInterface     $commentsRepository,
-        private UsersRepositoriesInterface     $usersRepository
+        private UsersRepositoriesInterface     $usersRepository,
+        private LoggerInterface $logger
     ) {
     }
 
     public function handle(Request $request): Response
     {
+        $this->logger->info("Post like create http-action started");
+
         try {
             $user_id = $request->jsonBodyField('author');
             $comment_id = $request->jsonBodyField('comment');
@@ -40,9 +44,10 @@ class CreateCommentLike implements ActionInterface
             return new ErrorResponse($e->getMessage());
         }
 
+        $uuid = UUID::createUUID();
         try {
             $commentLike = new CommentLike(
-                UUID::createUUID(),
+                $uuid,
                 $user,
                 $comment
             );
@@ -51,6 +56,8 @@ class CreateCommentLike implements ActionInterface
         }
 
         $this->commentLikesRepository->save($commentLike);
+
+        $this->logger->info("Post like created: $uuid");
 
         return new SuccessfulResponse(
             ['uuid' => (string)($commentLike->getUuid())]

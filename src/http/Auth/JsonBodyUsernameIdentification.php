@@ -26,6 +26,7 @@ class JsonBodyUsernameIdentification implements IdentificationInterface
      */
     public function user(Request $request): User
     {
+
         try {
             $username = $request->jsonBodyField('username');
         } catch (HttpException|InvalidArgumentException $e) {

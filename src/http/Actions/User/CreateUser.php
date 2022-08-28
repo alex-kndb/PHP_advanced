@@ -13,19 +13,24 @@ use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
 use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
+use Psr\Log\LoggerInterface;
 
 class CreateUser implements ActionInterface
 {
     public function __construct(
-        private UsersRepositoriesInterface $usersRepository
+        private UsersRepositoriesInterface $usersRepository,
+        private LoggerInterface $logger
     ) {
     }
 
     public function handle(Request $request): Response
     {
+        $this->logger->info("Create user http-action started");
+
+        $uuid = UUID::createUUID();
         try {
             $user = new User(
-                UUID::createUUID(),
+                $uuid,
                 new Name(
                     $request->jsonBodyField('first_name'),
                     $request->jsonBodyField('last_name'),
@@ -38,6 +43,8 @@ class CreateUser implements ActionInterface
         }
 
         $this->usersRepository->saveUser($user);
+
+        $this->logger->info("User created: $uuid");
 
         return new SuccessfulResponse(
             ['uuid' => (string)($user->getUUID())]

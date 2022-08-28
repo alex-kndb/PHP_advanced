@@ -12,16 +12,20 @@ use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
 use LksKndb\Php2\Blog\Repositories\CommentsRepositories\CommentsRepositoriesInterface;
+use Psr\Log\LoggerInterface;
 
 class FindCommentByUUID implements ActionInterface
 {
     public function __construct(
-        private CommentsRepositoriesInterface $commentsRepository
+        private CommentsRepositoriesInterface $commentsRepository,
+        private LoggerInterface $logger
     ) {
     }
 
     public function handle(Request $request): Response
     {
+        $this->logger->info("Comment search http-action started");
+
         try {
             $uuid = $request->query('uuid');
         } catch (HttpException $e){
@@ -33,6 +37,8 @@ class FindCommentByUUID implements ActionInterface
         } catch (UserNotFoundException|InvalidUuidException $e){
             return new ErrorResponse($e->getMessage());
         }
+
+        $this->logger->info("Comment found: $uuid");
 
         return new SuccessfulResponse([
             'uuid' => (string)$comment->getUuid(),
