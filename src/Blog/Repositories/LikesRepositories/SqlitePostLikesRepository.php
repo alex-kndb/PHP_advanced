@@ -93,7 +93,7 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
             DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
         );
 
-        $post_author_result = $this->query('users', $result['post_author']);
+        $post_author_result = $this->query('users', new UUID($result['post_author']));
 
         $post_author = new User(
             new UUID($post_author_result['uuid']),
@@ -132,11 +132,10 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
     public function query(string $table, UUID $uuid) : ?array
     {
         $statement = $this->connection->prepare(
-            'SELECT * FROM :table WHERE uuid = :uuid'
+            "SELECT * FROM $table WHERE uuid = :uuid"
         );
 
         $statement->execute([
-            ':table' => $table,
             ':uuid' => (string)$uuid
         ]);
 
@@ -157,7 +156,8 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
             ':post' => (string)$post
         ]);
 
-        $likes_result = $statement->fetch(PDO::FETCH_ASSOC);
+        $likes_result = $statement->fetchAll(PDO::FETCH_ASSOC);
+        //fetch(PDO::FETCH_ASSOC)
         $likes = [];
         foreach ($likes_result as $like){
             $likes[] = $this->getPostLikeByUUID(new UUID($like['uuid']));

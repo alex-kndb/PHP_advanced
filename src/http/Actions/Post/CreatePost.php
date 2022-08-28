@@ -2,28 +2,35 @@
 
 namespace LksKndb\Php2\http\Actions\Post;
 
-use LksKndb\Php2\Blog\http\Auth\IdentificationInterface;
+use http\Exception\InvalidArgumentException;
+use LksKndb\Php2\Blog\Exception\AuthException;
 use LksKndb\Php2\Blog\Post;
+use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
 use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\HttpException;
-use LksKndb\Php2\Exceptions\User\InvalidUuidException;
+use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use LksKndb\Php2\http\Actions\ActionInterface;
+use LksKndb\Php2\http\Auth\IdentificationInterface;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
 use LksKndb\Php2\Blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
-use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
 
 class CreatePost implements ActionInterface
 {
+//        private UsersRepositoriesInterface $usersRepository
+
     public function __construct(
         private PostsRepositoriesInterface $postsRepository,
-//        private UsersRepositoriesInterface $usersRepository
         private IdentificationInterface $identification
     ) {
     }
 
+    /**
+     * @throws AuthException
+     * @throws \JsonException
+     */
     public function handle(Request $request): Response
     {
 

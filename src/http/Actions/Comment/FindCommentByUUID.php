@@ -37,7 +37,7 @@ class FindCommentByUUID implements ActionInterface
         return new SuccessfulResponse([
             'uuid' => (string)$comment->getUuid(),
             'post' => (string)$comment->getPost()->getPost(),
-            'author' => (string)$comment->getAuthor()->getName()->getUsername(),
+            'author' => $comment->getAuthor()->getName()->getUsername(),
             'text' => $comment->getText(),
         ]);
     }

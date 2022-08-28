@@ -58,9 +58,9 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
     public function getCommentLikeByUUID(UUID $uuid): CommentLike
     {
         $statement = $this->connection->prepare(
-            'SELECT comments_likes.uuid,comments_likes.user AS like_author,comments_likes.comment,users.username,users.first_name,users.last_name,users.registration,comments.comment, comments.post, comments.author AS comment_author
+            'SELECT comments_likes.uuid,comments_likes.user AS like_author,comments_likes.comment,users.username,users.first_name,users.last_name,users.registration,comments.comment AS comment_text,comments.post,comments.author AS comment_author
                     FROM comments_likes
-                    LEFT JOIN comments ON comments_likes.comment=comments.id
+                    LEFT JOIN comments ON comments_likes.comment=comments.uuid
                     LEFT JOIN users ON comments_likes.user=users.uuid
                     WHERE comments_likes.uuid=:uuid'
         );
@@ -81,10 +81,10 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
             throw new LikeNotFoundException("DB: comment/like (UUID: $uuid) not found!");
         }
 
-        $comment_result = $this->query('comments', $result['comment']);
-        $comment_author_result = $this->query('users', $comment_result['author']);
-        $post_result = $this->query('posts', $result['post']);
-        $post_author_result = $this->query('users', $post_result['author']);
+        $comment_result = $this->query('comments', new UUID($result['comment']));
+        $comment_author_result = $this->query('users', new UUID($comment_result['author']));
+        $post_result = $this->query('posts', new UUID($result['post']));
+        $post_author_result = $this->query('users', new UUID($post_result['author']));
 
         $post = new Post(
             new UUID($post_result['uuid']),
@@ -102,7 +102,7 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
         );
 
         $comment = new Comment(
-            new UUID($comment_result['id']),
+            new UUID($comment_result['uuid']),
             $post,
             new User(
                 new UUID($comment_author_result['uuid']),
@@ -113,13 +113,13 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
                 ),
                 DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $comment_author_result['registration'])
             ),
-            $result['text']
+            $result['comment_text']
         );
 
         return new CommentLike(
             new UUID($result['uuid']),
             new User(
-                new UUID($result['user']),
+                new UUID($result['like_author']),
                 new Name(
                     $result['first_name'],
                     $result['last_name'],
@@ -130,24 +130,23 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
             $comment);
     }
 
-    public function deleteCommentLike(UUID $id): void
+    public function deleteCommentLike(UUID $uuid): void
     {
         $statement = $this->connection->prepare(
-            'DELETE FROM comments_likes WHERE uuid = :id'
+            'DELETE FROM comments_likes WHERE uuid = :uuid'
         );
         $statement->execute([
-            ':id' => (string)$id,
+            ':uuid' => (string)$uuid,
         ]);
     }
 
     public function query(string $table, UUID $uuid) : ?array
     {
         $statement = $this->connection->prepare(
-            'SELECT * FROM :table WHERE uuid = :uuid'
+            "SELECT * FROM $table WHERE uuid = :uuid"
         );
 
         $statement->execute([
-                ':table' => $table,
                 ':uuid' => (string)$uuid
             ]);
 
@@ -168,7 +167,7 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
             ':comment' => (string)$comment
         ]);
 
-        $comments_result = $statement->fetch(PDO::FETCH_ASSOC);
+        $comments_result = $statement->fetchAll(PDO::FETCH_ASSOC);
         $comments = [];
         foreach ($comments_result as $comment){
             $comments[] = $this->getCommentLikeByUUID(new UUID($comment['uuid']));

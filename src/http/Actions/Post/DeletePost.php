@@ -10,7 +10,7 @@ use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\SuccessfulResponse;
-use LksKndb\Php2\blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
+use LksKndb\Php2\Blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
 
 class DeletePost implements ActionInterface
 {

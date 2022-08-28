@@ -30,19 +30,19 @@ class GetLikesByCommentUUID implements ActionInterface
         }
 
         try {
-            $comments = $this->commentLikesRepository->getLikesByCommentUUID(new UUID($comment));
+            $likes = $this->commentLikesRepository->getLikesByCommentUUID(new UUID($comment));
         } catch (LikeNotFoundException|InvalidUuidException $e){
             return new ErrorResponse($e->getMessage());
         }
 
-        $commentsArray = [];
-        foreach ($comments as $comment){
-            $commentsArray[] = [
-                'uuid' => (string)$comment->getUuid(),
-                'comment' => (string)$comment->getPost()->getPost(),
-                'author' => $comment->getUser()->getName()->getUsername(),
+        $likesArray = [];
+        foreach ($likes as $like){
+            $likesArray[] = [
+                'uuid' => (string)$like->getUuid(),
+                'comment' => (string)$like->getComment()->getUuid(),
+                'author' => $like->getUser()->getName()->getUsername(),
             ];
         }
-        return new SuccessfulResponse($commentsArray);
+        return new SuccessfulResponse($likesArray);
     }
 }

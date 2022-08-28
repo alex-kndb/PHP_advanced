@@ -27,7 +27,7 @@ class CreateCommentLike implements ActionInterface
     public function handle(Request $request): Response
     {
         try {
-            $user_id = $request->jsonBodyField('user');
+            $user_id = $request->jsonBodyField('author');
             $comment_id = $request->jsonBodyField('comment');
         } catch (HttpException $e) {
             return new ErrorResponse($e->getMessage());

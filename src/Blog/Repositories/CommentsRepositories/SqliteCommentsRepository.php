@@ -22,7 +22,7 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
     public function saveComment(Comment $comment): void
     {
         $statement = $this->connection->prepare(
-            'INSERT INTO comments (id, post, author, comment) VALUES (:uuid, :post, :author, :text)'
+            'INSERT INTO comments (uuid, post, author, comment) VALUES (:uuid, :post, :author, :text)'
         );
         $statement->execute([
             ':uuid' => $comment->getUuid(),
@@ -39,11 +39,11 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
     public function getCommentByUUID(UUID $uuid): Comment
     {
         $statement = $this->connection->prepare(
-            'SELECT *
+            'SELECT comments.uuid,comments.post,comments.author AS comment_author,comments.comment,posts.author AS post_author,posts.title,posts.text,users.username,users.first_name,users.last_name,users.registration
                     FROM comments
                     LEFT JOIN posts ON comments.post=posts.uuid
                     LEFT JOIN  users ON comments.author=users.uuid
-                    WHERE comments.id=:uuid'
+                    WHERE comments.uuid=:uuid'
         );
         $statement->execute([
             ':uuid' => (string)$uuid,
@@ -62,8 +62,8 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
             throw new CommentNotFoundException("DB: comment (UUID: $uuid) not found!");
         }
 
-        $user = new User(
-            new UUID($result['uuid']),
+        $comment_author = new User(
+            new UUID($result['comment_author']),
             new Name(
                 $result['first_name'],
                 $result['last_name'],
@@ -72,27 +72,53 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
             DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
         );
 
+        $post_author_result = $this->query('users', new UUID($result['post_author']));
+
+        $post_author = new User(
+            new UUID($post_author_result['uuid']),
+            new Name(
+                $post_author_result['first_name'],
+                $post_author_result['last_name'],
+                $post_author_result['username']
+            ),
+            DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $post_author_result['registration'])
+        );
+
         $post = new Post(
             new UUID($result['post']),
-            $user,
+            $post_author,
             $result['title'],
             $result['text']
         );
 
         return new Comment(
-            new UUID($result['id']),
+            new UUID($result['uuid']),
             $post,
-            $user,
+            $comment_author,
             $result['comment']);
     }
 
-    public function deleteComment(UUID $id): void
+    public function deleteComment(UUID $uuid): void
     {
         $statement = $this->connection->prepare(
-            'DELETE FROM comments WHERE id = :id'
+            'DELETE FROM comments WHERE uuid = :uuid'
         );
         $statement->execute([
-            ':id' => (string)$id,
+            ':uuid' => (string)$uuid,
         ]);
     }
+
+    public function query(string $table, UUID $uuid) : ?array
+    {
+        $statement = $this->connection->prepare(
+            "SELECT * FROM $table WHERE uuid = :uuid"
+        );
+
+        $statement->execute([
+            ':uuid' => (string)$uuid
+        ]);
+
+        return $statement->fetch(PDO::FETCH_ASSOC) ?? null;
+    }
+
 }

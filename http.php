@@ -5,6 +5,7 @@ use LksKndb\Php2\http\Actions\Like\CreateCommentLike;
 use LksKndb\Php2\http\Actions\Like\CreatePostLike;
 use LksKndb\Php2\http\Actions\Like\DeleteCommentLike;
 use LksKndb\Php2\http\Actions\Like\DeletePostLike;
+use LksKndb\Php2\http\Actions\Like\FindCommentLikeByUUID;
 use LksKndb\Php2\http\Actions\Like\FindPostLikeByUUID;
 use LksKndb\Php2\http\Actions\Like\GetLikesByCommentUUID;
 use LksKndb\Php2\http\Actions\Like\GetLikesByPostUUID;
@@ -31,15 +32,8 @@ $request = new Request(
 $connection = new PDO('sqlite:'.__DIR__.'/blog.sqlite');
 $commentsRepo = new SqliteCommentsRepository($connection);
 
-// Получаем действие
 try {
     $path = $request->path();
-} catch (HttpException $e) {
-    (new ErrorResponse($e->getMessage()))->send();
-}
-
-// Получаем метод
-try {
     $method = $request->method();
 } catch (HttpException $e) {
     (new ErrorResponse($e->getMessage()))->send();
@@ -58,9 +52,9 @@ $routes = [
         '/post/find' => FindPostByUUID::class,
         '/comment/find' => FindCommentByUUID::class,
         '/post/like/find' => FindPostLikeByUUID::class,
-        '/comment/like/find' => FindPostLikeByUUID::class,
+        '/comment/like/find' => FindCommentLikeByUUID::class,
         '/post/likes' => GetLikesByPostUUID::class,
-        '/comment/likes/' => GetLikesByCommentUUID::class
+        '/comment/likes' => GetLikesByCommentUUID::class
     ],
     'DELETE' => [
         '/post' => DeletePost::class,

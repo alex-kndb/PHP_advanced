@@ -27,7 +27,7 @@ class CreatePostLike implements ActionInterface
     public function handle(Request $request): Response
     {
         try {
-            $user_id = $request->jsonBodyField('user');
+            $user_id = $request->jsonBodyField('author');
             $post_id = $request->jsonBodyField('post');
         } catch (HttpException $e) {
             return new ErrorResponse($e->getMessage());
