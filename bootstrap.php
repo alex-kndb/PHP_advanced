@@ -12,8 +12,10 @@ use LksKndb\Php2\Blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
 use LksKndb\Php2\Blog\Repositories\PostsRepositories\SqlitePostsRepository;
 use LksKndb\Php2\Blog\Repositories\UsersRepositories\SqliteUsersRepository;
 use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
+use LksKndb\Php2\http\Auth\AuthenticationInterface;
 use LksKndb\Php2\http\Auth\IdentificationInterface;
 use LksKndb\Php2\http\Auth\JsonBodyUsernameIdentification;
+use LksKndb\Php2\http\Auth\PasswordAuthentication;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
@@ -82,9 +84,14 @@ $container->bind(
     SqliteCommentLikesRepository::class
 );
 
+//$container->bind(
+//    IdentificationInterface::class,
+//    JsonBodyUsernameIdentification::class
+//);
+
 $container->bind(
-    IdentificationInterface::class,
-    JsonBodyUsernameIdentification::class
+    AuthenticationInterface::class,
+    PasswordAuthentication::class
 );
 
 return $container;

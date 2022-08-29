@@ -2,15 +2,12 @@
 
 namespace LksKndb\Php2\http\Actions\Post;
 
-use http\Exception\InvalidArgumentException;
 use LksKndb\Php2\Blog\Exception\AuthException;
 use LksKndb\Php2\Blog\Post;
-use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
 use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\HttpException;
-use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use LksKndb\Php2\http\Actions\ActionInterface;
-use LksKndb\Php2\http\Auth\IdentificationInterface;
+use LksKndb\Php2\http\Auth\AuthenticationInterface;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
@@ -24,7 +21,7 @@ class CreatePost implements ActionInterface
 
     public function __construct(
         private PostsRepositoriesInterface $postsRepository,
-        private IdentificationInterface $identification,
+        private AuthenticationInterface $authentication,
         private LoggerInterface $logger
     ) {
     }
@@ -37,13 +34,17 @@ class CreatePost implements ActionInterface
     {
         $this->logger->info("Post create http-action started");
 
-        $user = $this->identification->user($request);
+        try {
+            $author = $this->authentication->user($request);
+        } catch (AuthException $e) {
+            return new ErrorResponse($e->getMessage());
+        }
 
         $uuid = UUID::createUUID();
         try {
             $post = new Post(
                 $uuid,
-                $user,
+                $author,
                 $request->jsonBodyField('title'),
                 $request->jsonBodyField('text'),
             );

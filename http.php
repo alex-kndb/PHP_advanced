@@ -31,7 +31,7 @@ $request = new Request(
 );
 
 $connection = new PDO('sqlite:'.__DIR__.'/blog.sqlite');
-$commentsRepo = new SqliteCommentsRepository($connection);
+//$commentsRepo = new SqliteCommentsRepository($connection);
 
 $logger = $container->get(LoggerInterface::class);
 

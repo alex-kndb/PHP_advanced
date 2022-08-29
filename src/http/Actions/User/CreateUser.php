@@ -27,16 +27,14 @@ class CreateUser implements ActionInterface
     {
         $this->logger->info("Create user http-action started");
 
-        $uuid = UUID::createUUID();
         try {
-            $user = new User(
-                $uuid,
+            $user = User::createFrom(
                 new Name(
                     $request->jsonBodyField('first_name'),
                     $request->jsonBodyField('last_name'),
                     $request->jsonBodyField('username')
                 ),
-                new DateTimeImmutable()
+                $request->jsonBodyField('password'),
             );
         } catch (HttpException | \JsonException $e) {
             return new ErrorResponse($e->getMessage());
@@ -44,7 +42,7 @@ class CreateUser implements ActionInterface
 
         $this->usersRepository->saveUser($user);
 
-        $this->logger->info("User created: $uuid");
+        $this->logger->info("User created: ".$user->getUUID());
 
         return new SuccessfulResponse(
             ['uuid' => (string)($user->getUUID())]

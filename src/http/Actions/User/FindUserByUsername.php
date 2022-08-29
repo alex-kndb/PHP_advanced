@@ -43,6 +43,7 @@ class FindUserByUsername implements ActionInterface
             'username' => $user->getName()->getUsername(),
             'first_name' => $user->getName()->getFirstName(),
             'last_name' => $user->getName()->getLastName(),
+            'password' => $user->password(),
             'registeredOn' => $user->getRegisteredOn()->format('Y-m-d\ H:i:s')
         ]);
     }

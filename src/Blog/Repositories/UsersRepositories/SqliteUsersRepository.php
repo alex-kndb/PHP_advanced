@@ -37,13 +37,14 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
             return;
         }
         $statement = $this->connection->prepare(
-            'INSERT INTO users (uuid, username, first_name,last_name, registration) VALUES (:uuid, :username, :first_name, :last_name, :registration)'
+            'INSERT INTO users (uuid, username, first_name,last_name, password, registration) VALUES (:uuid, :username, :first_name, :last_name, :password, :registration)'
         );
         $statement->execute([
             ':uuid' => $user->getUUID(),
             ':username' => $user->getName()->getUsername(),
             ':first_name' => $user->getName()->getFirstName(),
             ':last_name' => $user->getName()->getLastName(),
+            ':password' => $user->hashedPassword(),
             ':registration' => $user->getRegisteredOn()->format('Y-m-d\ H:i:s'),
         ]);
 
@@ -134,6 +135,7 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
                 $result['last_name'],
                 $result['username']
             ),
+            $result['password'],
             DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
         );
     }

@@ -9,6 +9,7 @@ class User
     public function __construct(
         private UUID $uuid,
         private Name $name,
+        private string $hashedPassword,
         private DateTimeImmutable $registeredOn
     ){}
 
@@ -29,6 +30,14 @@ class User
     }
 
     /**
+     * @return string
+     */
+    public function hashedPassword(): string
+    {
+        return $this->hashedPassword;
+    }
+
+    /**
      * @return DateTimeImmutable
      */
     public function getRegisteredOn(): DateTimeImmutable
@@ -41,5 +50,26 @@ class User
         return "User id: {$this->getUUID()}".PHP_EOL.
             "Registration: ".$this->getRegisteredOn()->format('Y-m-d\ H:i:s').PHP_EOL.
             $this->getName()->__toString();
+    }
+
+    private static function hash(string $password, UUID $uuid): string
+    {
+        return hash('sha256', $uuid.$password);
+    }
+
+    public function checkPassword(string $password): bool
+    {
+        return $this->hashedPassword === self::hash($password, $this->getUUID());
+    }
+
+    public static function createFrom(Name $name, string $password): self
+    {
+        $uuid = UUID::createUUID();
+        return new self(
+            $uuid,
+            $name,
+            self::hash($password, $uuid),
+            new DateTimeImmutable()
+        );
     }
 }
