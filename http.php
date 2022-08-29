@@ -16,9 +16,9 @@ use LksKndb\Php2\http\Actions\User\FindUserByUsername;
 use LksKndb\Php2\http\Actions\Comment\CreateComment;
 use LksKndb\Php2\http\Actions\Post\CreatePost;
 use LksKndb\Php2\http\Actions\User\CreateUser;
+use LksKndb\Php2\http\Auth\LogIn;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
-use LksKndb\Php2\Blog\Repositories\CommentsRepositories\SqliteCommentsRepository;
 use LksKndb\Php2\Exceptions\HttpException;
 use Psr\Log\LoggerInterface;
 
@@ -31,8 +31,6 @@ $request = new Request(
 );
 
 $connection = new PDO('sqlite:'.__DIR__.'/blog.sqlite');
-//$commentsRepo = new SqliteCommentsRepository($connection);
-
 $logger = $container->get(LoggerInterface::class);
 
 try {
@@ -51,6 +49,7 @@ $routes = [
         '/comment/create' => CreateComment::class,
         '/post/like/create' => CreatePostLike::class,
         '/comment/like/create' => CreateCommentLike::class,
+        '/login' => LogIn::class,
     ],
     'GET' => [
         '/user/find' => FindUserByUsername::class,

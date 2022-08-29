@@ -2,6 +2,8 @@
 
 use Dotenv\Dotenv;
 use LksKndb\Php2\Blog\Container\DIContainer;
+use LksKndb\Php2\Blog\Repositories\AuthTokensRepository\AuthTokensRepositoryInterface;
+use LksKndb\Php2\Blog\Repositories\AuthTokensRepository\SqliteAuthTokensRepository;
 use LksKndb\Php2\Blog\Repositories\CommentsRepositories\CommentsRepositoriesInterface;
 use LksKndb\Php2\Blog\Repositories\CommentsRepositories\SqliteCommentsRepository;
 use LksKndb\Php2\Blog\Repositories\LikesRepositories\CommentLikesRepositoriesInterface;
@@ -12,10 +14,10 @@ use LksKndb\Php2\Blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
 use LksKndb\Php2\Blog\Repositories\PostsRepositories\SqlitePostsRepository;
 use LksKndb\Php2\Blog\Repositories\UsersRepositories\SqliteUsersRepository;
 use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
-use LksKndb\Php2\http\Auth\AuthenticationInterface;
-use LksKndb\Php2\http\Auth\IdentificationInterface;
-use LksKndb\Php2\http\Auth\JsonBodyUsernameIdentification;
 use LksKndb\Php2\http\Auth\PasswordAuthentication;
+use LksKndb\Php2\http\Auth\PasswordAuthenticationInterface;
+use LksKndb\Php2\http\Auth\TokenAuthentication;
+use LksKndb\Php2\http\Auth\TokenAuthenticationInterface;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
@@ -84,14 +86,18 @@ $container->bind(
     SqliteCommentLikesRepository::class
 );
 
-//$container->bind(
-//    IdentificationInterface::class,
-//    JsonBodyUsernameIdentification::class
-//);
-
 $container->bind(
-    AuthenticationInterface::class,
+    PasswordAuthenticationInterface::class,
     PasswordAuthentication::class
 );
 
+$container->bind(
+    TokenAuthenticationInterface::class,
+    TokenAuthentication::class
+);
+
+$container->bind(
+    AuthTokensRepositoryInterface::class,
+    SqliteAuthTokensRepository::class
+);
 return $container;

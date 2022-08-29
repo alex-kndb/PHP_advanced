@@ -8,6 +8,7 @@ use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\http\Actions\ActionInterface;
 use LksKndb\Php2\http\Auth\AuthenticationInterface;
+use LksKndb\Php2\http\Auth\TokenAuthentication;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
@@ -21,7 +22,7 @@ class CreatePost implements ActionInterface
 
     public function __construct(
         private PostsRepositoriesInterface $postsRepository,
-        private AuthenticationInterface $authentication,
+        private TokenAuthentication $authentication,
         private LoggerInterface $logger
     ) {
     }
