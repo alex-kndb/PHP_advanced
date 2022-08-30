@@ -34,7 +34,7 @@ class FindCommentByUUID implements ActionInterface
 
         try {
             $comment = $this->commentsRepository->getCommentByUUID(new UUID($uuid));
-        } catch (UserNotFoundException|InvalidUuidException $e){
+        } catch (InvalidUuidException $e){
             return new ErrorResponse($e->getMessage());
         }
 

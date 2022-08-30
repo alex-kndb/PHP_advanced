@@ -34,7 +34,7 @@ class FindPostByUUID implements ActionInterface
 
         try {
             $post = $this->postsRepository->getPostByUUID(new UUID($uuid));
-        } catch (UserNotFoundException|InvalidUuidException $e){
+        } catch (InvalidUuidException $e){
             return new ErrorResponse($e->getMessage());
         }
 
@@ -42,7 +42,7 @@ class FindPostByUUID implements ActionInterface
 
         return new SuccessfulResponse([
             'uuid' => (string)$post->getPost(),
-            'author' => (string)$post->getAuthor()->getUUID(),
+            'author' => $post->getAuthor()->getName()->getUsername(),
             'title' => $post->getTitle(),
             'text' => $post->getText(),
         ]);

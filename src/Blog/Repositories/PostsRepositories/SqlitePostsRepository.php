@@ -2,13 +2,12 @@
 
 namespace LksKndb\Php2\Blog\Repositories\PostsRepositories;
 
-use DateTimeImmutable;
-use LksKndb\Php2\Blog\Name;
 use LksKndb\Php2\Blog\Post;
-use LksKndb\Php2\Blog\User;
+use LksKndb\Php2\Blog\Repositories\UsersRepositories\SqliteUsersRepository;
 use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\Posts\PostNotFoundException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
+use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use PDO;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
@@ -42,7 +41,7 @@ class SqlitePostsRepository implements PostsRepositoriesInterface
     public function getPostByUUID(UUID $uuid): Post
     {
         $statement = $this->connection->prepare(
-            'SELECT posts.uuid,posts.author,posts.title,posts.text,users.first_name,users.last_name,users.username,users.password,users.registration FROM posts INNER JOIN users ON posts.author=users.uuid WHERE posts.uuid=:uuid'
+            'SELECT * FROM posts WHERE uuid=:uuid'
         );
         $statement->execute([
             ':uuid' => (string)$uuid,
@@ -51,8 +50,8 @@ class SqlitePostsRepository implements PostsRepositoriesInterface
     }
 
     /**
-     * @throws PostNotFoundException
      * @throws InvalidUuidException
+     * @throws UserNotFoundException
      */
     private function getPost(PDOStatement $statement, string $uuid): Post
     {
@@ -63,18 +62,11 @@ class SqlitePostsRepository implements PostsRepositoriesInterface
             exit;
         }
 
+        $userRepo = new SqliteUsersRepository($this->connection, $this->logger);
+
         return new Post(
             new UUID($result['uuid']),
-            new User(
-                new UUID($result['author']),
-                new Name(
-                    $result['first_name'],
-                    $result['last_name'],
-                    $result['username']
-                ),
-                $result['password'],
-                DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
-            ),
+            $userRepo->getUserByUUID(new UUID($result['author'])),
             $result['title'],
             $result['text']
         );

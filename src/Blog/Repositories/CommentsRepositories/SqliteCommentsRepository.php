@@ -2,14 +2,14 @@
 
 namespace LksKndb\Php2\Blog\Repositories\CommentsRepositories;
 
-use DateTimeImmutable;
 use LksKndb\Php2\Blog\Comment;
-use LksKndb\Php2\Blog\Name;
-use LksKndb\Php2\Blog\Post;
-use LksKndb\Php2\Blog\User;
+use LksKndb\Php2\Blog\Repositories\PostsRepositories\SqlitePostsRepository;
+use LksKndb\Php2\Blog\Repositories\UsersRepositories\SqliteUsersRepository;
 use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\Comment\CommentNotFoundException;
+use LksKndb\Php2\Exceptions\Posts\PostNotFoundException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
+use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use PDO;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
@@ -43,11 +43,7 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
     public function getCommentByUUID(UUID $uuid): Comment
     {
         $statement = $this->connection->prepare(
-            'SELECT comments.uuid,comments.post,comments.author AS comment_author,comments.comment,posts.author AS post_author,posts.title,posts.text,users.username,users.first_name,users.last_name,users.password,users.registration
-                    FROM comments
-                    LEFT JOIN posts ON comments.post=posts.uuid
-                    LEFT JOIN  users ON comments.author=users.uuid
-                    WHERE comments.uuid=:uuid'
+            'SELECT * FROM comments WHERE uuid=:uuid'
         );
         $statement->execute([
             ':uuid' => (string)$uuid,
@@ -58,6 +54,8 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
     /**
      * @throws CommentNotFoundException
      * @throws InvalidUuidException
+     * @throws UserNotFoundException
+     * @throws PostNotFoundException
      */
     private function getComment(PDOStatement $statement, string $uuid): Comment
     {
@@ -68,41 +66,13 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
             exit;
         }
 
-        $comment_author = new User(
-            new UUID($result['comment_author']),
-            new Name(
-                $result['first_name'],
-                $result['last_name'],
-                $result['username']
-            ),
-            $result['password'],
-            DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
-        );
-
-        $post_author_result = $this->query('users', new UUID($result['post_author']));
-
-        $post_author = new User(
-            new UUID($post_author_result['uuid']),
-            new Name(
-                $post_author_result['first_name'],
-                $post_author_result['last_name'],
-                $post_author_result['username']
-            ),
-            $post_author_result['password'],
-            DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $post_author_result['registration'])
-        );
-
-        $post = new Post(
-            new UUID($result['post']),
-            $post_author,
-            $result['title'],
-            $result['text']
-        );
+        $userRepo = new SqliteUsersRepository($this->connection, $this->logger);
+        $postRepo = new SqlitePostsRepository($this->connection, $this->logger);
 
         return new Comment(
             new UUID($result['uuid']),
-            $post,
-            $comment_author,
+            $postRepo->getPostByUUID(new UUID($result['post'])),
+            $userRepo->getUserByUUID(new UUID($result['author'])),
             $result['comment']);
     }
 
