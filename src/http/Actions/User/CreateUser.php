@@ -40,6 +40,14 @@ class CreateUser implements ActionInterface
             return new ErrorResponse($e->getMessage());
         }
 
+        $username = $user->getName()->getUsername();
+        if($this->usersRepository->isUserExist($username)){
+            $mess = "User with such username is already exist: $username";
+            $this->logger->warning($mess);
+            // throw new UserAlreadyExistException($mess);
+            return new ErrorResponse($mess);
+        }
+
         $this->usersRepository->saveUser($user);
 
         $this->logger->info("User created: ".$user->getUUID());

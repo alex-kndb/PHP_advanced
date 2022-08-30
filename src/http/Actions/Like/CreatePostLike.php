@@ -2,18 +2,19 @@
 
 namespace LksKndb\Php2\http\Actions\Like;
 
+use LksKndb\Php2\Blog\Exception\AuthException;
 use LksKndb\Php2\Blog\PostLike;
 use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use LksKndb\Php2\http\Actions\ActionInterface;
+use LksKndb\Php2\http\Auth\TokenAuthentication;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
 use LksKndb\Php2\Blog\Repositories\LikesRepositories\PostLikesRepositoriesInterface;
 use LksKndb\Php2\Blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
-use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
 use Psr\Log\LoggerInterface;
 
 class CreatePostLike implements ActionInterface
@@ -21,7 +22,7 @@ class CreatePostLike implements ActionInterface
     public function __construct(
         private PostLikesRepositoriesInterface $postLikesRepository,
         private postsRepositoriesInterface     $postsRepository,
-        private usersRepositoriesInterface     $usersRepository,
+        private TokenAuthentication $authentication,
         private LoggerInterface $logger
     ) {
     }
@@ -31,16 +32,21 @@ class CreatePostLike implements ActionInterface
         $this->logger->info("Comment like create http-action started");
 
         try {
-            $user_id = $request->jsonBodyField('author');
+            $user = $this->authentication->user($request);
+        } catch (AuthException $e) {
+            return new ErrorResponse($e->getMessage());
+        }
+
+        try {
             $post_id = $request->jsonBodyField('post');
         } catch (HttpException $e) {
             return new ErrorResponse($e->getMessage());
         }
 
+
         try {
-            $user = $this->usersRepository->getUserByUUID(new UUID($user_id));
             $post = $this->postsRepository->getPostByUUID(new UUID($post_id));
-        } catch (HttpException | InvalidUuidException $e) {
+        } catch (InvalidUuidException $e) {
             return new ErrorResponse($e->getMessage());
         }
 
@@ -51,8 +57,17 @@ class CreatePostLike implements ActionInterface
                 $user,
                 $post
             );
-        } catch (HttpException | \JsonException$e) {
+        } catch (HttpException | \JsonException $e) {
             return new ErrorResponse($e->getMessage());
+        }
+
+        $post = $postLike->getPost()->getPost();
+        $user = $postLike->getUser()->getUUID();
+        if($this->postLikesRepository->isPostAlreadyLiked($post, $user)){
+            $mess = "Post is already liked by this user: $user";
+            $this->logger->warning($mess);
+            // throw new PostIsAlreadyLikedByThisUser($mess);
+            return new ErrorResponse($mess);
         }
 
         $this->postLikesRepository->save($postLike);

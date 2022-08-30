@@ -22,25 +22,15 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
         private LoggerInterface $logger
     ){}
 
-    /**
-     * @throws PostIsAlreadyLikedByThisUser
-     */
     public function save(PostLike $like): void
     {
-        $post = $like->getPost()->getPost();
-        $user = $like->getUser()->getUUID();
-        if($this->isPostAlreadyLiked($post, $user)){
-            $this->logger->warning("Post is already liked by this user: $user");
-            // throw new PostIsAlreadyLikedByThisUser("Post is already liked by this user: $user");
-            return;
-        }
         $statement = $this->connection->prepare(
             'INSERT INTO posts_likes (uuid, post, author) VALUES (:uuid, :post, :author)'
         );
         $statement->execute([
             ':uuid' => $like->getUuid(),
-            ':post' => $post,
-            ':author' => $user
+            ':post' => $like->getPost()->getPost(),
+            ':author' => $like->getUser()->getUUID()
         ]);
 
         $this->logger->info("SqlitePostLikeRepo -> post like created: {$like->getUuid()}");
@@ -66,7 +56,7 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
     public function getPostLikeByUUID(UUID $uuid): PostLike
     {
         $statement = $this->connection->prepare(
-            'SELECT posts_likes.uuid,posts_likes.author AS like_author,posts_likes.post,users.username,users.first_name,users.last_name,users.registration,posts.author AS post_author ,posts.title,posts.text
+            'SELECT posts_likes.uuid,posts_likes.author AS like_author,posts_likes.post,users.username,users.first_name,users.last_name,users.password,users.registration,posts.author AS post_author ,posts.title,posts.text
                     FROM posts_likes
                     LEFT JOIN posts ON posts_likes.post=posts.uuid
                     LEFT JOIN  users ON posts_likes.author=users.uuid
@@ -98,6 +88,7 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
                 $result['last_name'],
                 $result['username']
             ),
+            $result['password'],
             DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
         );
 
@@ -110,6 +101,7 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
                 $post_author_result['last_name'],
                 $post_author_result['username']
             ),
+            $result['password'],
             DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $post_author_result['registration'])
         );
 

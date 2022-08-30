@@ -29,13 +29,6 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
      */
     public function saveUser(User $user): void
     {
-        $username = $user->getName()->getUsername();
-        if($this->isUserExist($username)){
-            $mess = "User with such username is already exist: $username";
-            $this->logger->warning($mess);
-            // throw new UserAlreadyExistException($mess);
-            return;
-        }
         $statement = $this->connection->prepare(
             'INSERT INTO users (uuid, username, first_name,last_name, password, registration) VALUES (:uuid, :username, :first_name, :last_name, :password, :registration)'
         );

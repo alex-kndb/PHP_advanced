@@ -9,6 +9,7 @@ use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use LksKndb\Php2\http\Actions\ActionInterface;
+use LksKndb\Php2\http\Auth\TokenAuthentication;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
@@ -21,7 +22,7 @@ class CreateCommentLike implements ActionInterface
     public function __construct(
         private CommentLikesRepositoriesInterface $commentLikesRepository,
         private CommentsRepositoriesInterface     $commentsRepository,
-        private UsersRepositoriesInterface     $usersRepository,
+        private TokenAuthentication $authentication,
         private LoggerInterface $logger
     ) {
     }
@@ -30,15 +31,15 @@ class CreateCommentLike implements ActionInterface
     {
         $this->logger->info("Post like create http-action started");
 
+        $user = $this->authentication->user($request);
+
         try {
-            $user_id = $request->jsonBodyField('author');
             $comment_id = $request->jsonBodyField('comment');
-        } catch (HttpException $e) {
+        } catch (HttpException | \JsonException $e) {
             return new ErrorResponse($e->getMessage());
         }
 
         try {
-            $user = $this->usersRepository->getUserByUUID(new UUID($user_id));
             $comment = $this->commentsRepository->getCommentByUUID(new UUID($comment_id));
         } catch (HttpException | InvalidUuidException $e) {
             return new ErrorResponse($e->getMessage());

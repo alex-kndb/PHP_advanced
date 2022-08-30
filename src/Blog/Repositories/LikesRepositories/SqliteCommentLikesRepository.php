@@ -103,6 +103,7 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
                     $post_author_result['last_name'],
                     $post_author_result['username']
                 ),
+                $post_author_result['password'],
                 DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $post_author_result['registration'])
             ),
             $post_result['title'],
@@ -119,6 +120,7 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
                     $comment_author_result['last_name'],
                     $comment_author_result['username']
                 ),
+                $comment_author_result['password'],
                 DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $comment_author_result['registration'])
             ),
             $result['comment_text']

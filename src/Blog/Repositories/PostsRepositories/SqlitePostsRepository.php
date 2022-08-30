@@ -42,7 +42,7 @@ class SqlitePostsRepository implements PostsRepositoriesInterface
     public function getPostByUUID(UUID $uuid): Post
     {
         $statement = $this->connection->prepare(
-            'SELECT posts.uuid,posts.author,posts.title,posts.text,users.first_name,users.last_name,users.username,users.registration FROM posts INNER JOIN users ON posts.author=users.uuid WHERE posts.uuid=:uuid'
+            'SELECT posts.uuid,posts.author,posts.title,posts.text,users.first_name,users.last_name,users.username,users.password,users.registration FROM posts INNER JOIN users ON posts.author=users.uuid WHERE posts.uuid=:uuid'
         );
         $statement->execute([
             ':uuid' => (string)$uuid,
@@ -72,6 +72,7 @@ class SqlitePostsRepository implements PostsRepositoriesInterface
                     $result['last_name'],
                     $result['username']
                 ),
+                $result['password'],
                 DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
             ),
             $result['title'],

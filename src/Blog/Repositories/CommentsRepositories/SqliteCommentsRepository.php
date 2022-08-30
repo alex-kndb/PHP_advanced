@@ -43,7 +43,7 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
     public function getCommentByUUID(UUID $uuid): Comment
     {
         $statement = $this->connection->prepare(
-            'SELECT comments.uuid,comments.post,comments.author AS comment_author,comments.comment,posts.author AS post_author,posts.title,posts.text,users.username,users.first_name,users.last_name,users.registration
+            'SELECT comments.uuid,comments.post,comments.author AS comment_author,comments.comment,posts.author AS post_author,posts.title,posts.text,users.username,users.first_name,users.last_name,users.password,users.registration
                     FROM comments
                     LEFT JOIN posts ON comments.post=posts.uuid
                     LEFT JOIN  users ON comments.author=users.uuid
@@ -75,6 +75,7 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
                 $result['last_name'],
                 $result['username']
             ),
+            $result['password'],
             DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
         );
 
@@ -87,6 +88,7 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
                 $post_author_result['last_name'],
                 $post_author_result['username']
             ),
+            $post_author_result['password'],
             DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $post_author_result['registration'])
         );
 

@@ -3,10 +3,12 @@
 namespace LksKndb\Php2\http\Actions\Comment;
 
 use LksKndb\Php2\Blog\Comment;
+use LksKndb\Php2\Blog\Exception\AuthException;
 use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use LksKndb\Php2\http\Actions\ActionInterface;
+use LksKndb\Php2\http\Auth\TokenAuthentication;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
@@ -21,24 +23,22 @@ class CreateComment implements ActionInterface
     public function __construct(
         private commentsRepositoriesInterface $commentsRepository,
         private postsRepositoriesInterface $postsRepository,
-        private usersRepositoriesInterface $usersRepository,
+        private TokenAuthentication $authentication,
         private LoggerInterface $logger
     ) {
     }
 
+    /**
+     * @throws AuthException
+     * @throws \JsonException
+     */
     public function handle(Request $request): Response
     {
         $this->logger->info("Comment create http-action started");
 
         try {
-            $author_id = $request->jsonBodyField('author');
-        } catch (HttpException $e) {
-            return new ErrorResponse($e->getMessage());
-        }
-
-        try {
-            $user = $this->usersRepository->getUserByUUID(new UUID($author_id));
-        } catch (HttpException | InvalidUuidException $e) {
+            $user = $this->authentication->user($request);
+        } catch (AuthException $e) {
             return new ErrorResponse($e->getMessage());
         }
 

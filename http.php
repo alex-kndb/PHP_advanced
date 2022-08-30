@@ -17,6 +17,7 @@ use LksKndb\Php2\http\Actions\Comment\CreateComment;
 use LksKndb\Php2\http\Actions\Post\CreatePost;
 use LksKndb\Php2\http\Actions\User\CreateUser;
 use LksKndb\Php2\http\Auth\LogIn;
+use LksKndb\Php2\http\Auth\LogOut;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\Exceptions\HttpException;
@@ -50,6 +51,7 @@ $routes = [
         '/post/like/create' => CreatePostLike::class,
         '/comment/like/create' => CreateCommentLike::class,
         '/login' => LogIn::class,
+        '/logout' => LogOut::class
     ],
     'GET' => [
         '/user/find' => FindUserByUsername::class,
