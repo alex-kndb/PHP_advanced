@@ -4,15 +4,15 @@ namespace LksKndb\Php2\http\Actions\Like;
 
 use LksKndb\Php2\Blog\Repositories\LikesRepositories\CommentLikesRepositoriesInterface;
 use LksKndb\Php2\Blog\UUID;
-use LksKndb\Php2\Exception\Likes\LikeNotFoundException;
+use LksKndb\Php2\Exceptions\Comment\CommentNotFoundException;
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
+use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use LksKndb\Php2\http\Actions\ActionInterface;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
-use LksKndb\Php2\Blog\Repositories\LikesRepositories\PostLikesRepositoriesInterface;
 use Psr\Log\LoggerInterface;
 
 class GetLikesByCommentUUID implements ActionInterface
@@ -35,7 +35,7 @@ class GetLikesByCommentUUID implements ActionInterface
 
         try {
             $likes = $this->commentLikesRepository->getLikesByCommentUUID(new UUID($comment));
-        } catch (LikeNotFoundException|InvalidUuidException $e){
+        } catch (UserNotFoundException | CommentNotFoundException | InvalidUuidException $e){
             return new ErrorResponse($e->getMessage());
         }
 

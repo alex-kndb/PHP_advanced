@@ -2,16 +2,13 @@
 
 namespace LksKndb\Php2\Blog\Repositories\LikesRepositories;
 
-use DateTimeImmutable;
-use LksKndb\Php2\Blog\Comment;
 use LksKndb\Php2\Blog\CommentLike;
-use LksKndb\Php2\Blog\Name;
-use LksKndb\Php2\Blog\Post;
-use LksKndb\Php2\Blog\User;
+use LksKndb\Php2\Blog\Repositories\CommentsRepositories\SqliteCommentsRepository;
+use LksKndb\Php2\Blog\Repositories\UsersRepositories\SqliteUsersRepository;
 use LksKndb\Php2\Blog\UUID;
-use LksKndb\Php2\Exception\Likes\LikeNotFoundException;
-use LksKndb\Php2\Exceptions\Likes\CommentIsAlreadyLikedByThisUser;
+use LksKndb\Php2\Exceptions\Comment\CommentNotFoundException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
+use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use PDO;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
@@ -58,17 +55,14 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
 
 
     /**
+     * @throws CommentNotFoundException
      * @throws InvalidUuidException
-     * @throws LikeNotFoundException
+     * @throws UserNotFoundException
      */
     public function getCommentLikeByUUID(UUID $uuid): CommentLike
     {
         $statement = $this->connection->prepare(
-            'SELECT comments_likes.uuid,comments_likes.user AS like_author,comments_likes.comment,users.username,users.first_name,users.last_name,users.registration,comments.comment AS comment_text,comments.post,comments.author AS comment_author
-                    FROM comments_likes
-                    LEFT JOIN comments ON comments_likes.comment=comments.uuid
-                    LEFT JOIN users ON comments_likes.user=users.uuid
-                    WHERE comments_likes.uuid=:uuid'
+            'SELECT * FROM comments_likes WHERE uuid=:uuid'
         );
         $statement->execute([
             ':uuid' => (string)$uuid,
@@ -78,7 +72,8 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
 
     /**
      * @throws InvalidUuidException
-     * @throws LikeNotFoundException
+     * @throws CommentNotFoundException
+     * @throws UserNotFoundException
      */
     private function getCommentLike(PDOStatement $statement, string $uuid): CommentLike
     {
@@ -89,55 +84,14 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
             exit;
         }
 
-        $comment_result = $this->query('comments', new UUID($result['comment']));
-        $comment_author_result = $this->query('users', new UUID($comment_result['author']));
-        $post_result = $this->query('posts', new UUID($result['post']));
-        $post_author_result = $this->query('users', new UUID($post_result['author']));
-
-        $post = new Post(
-            new UUID($post_result['uuid']),
-            new User(
-                new UUID($post_author_result['uuid']),
-                new Name(
-                    $post_author_result['first_name'],
-                    $post_author_result['last_name'],
-                    $post_author_result['username']
-                ),
-                $post_author_result['password'],
-                DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $post_author_result['registration'])
-            ),
-            $post_result['title'],
-            $post_result['text']
-        );
-
-        $comment = new Comment(
-            new UUID($comment_result['uuid']),
-            $post,
-            new User(
-                new UUID($comment_author_result['uuid']),
-                new Name(
-                    $comment_author_result['first_name'],
-                    $comment_author_result['last_name'],
-                    $comment_author_result['username']
-                ),
-                $comment_author_result['password'],
-                DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $comment_author_result['registration'])
-            ),
-            $result['comment_text']
-        );
+        $usersRepo = new SqliteUsersRepository($this->connection, $this->logger);
+        $commentsRepo = new SqliteCommentsRepository($this->connection, $this->logger);
 
         return new CommentLike(
             new UUID($result['uuid']),
-            new User(
-                new UUID($result['like_author']),
-                new Name(
-                    $result['first_name'],
-                    $result['last_name'],
-                    $result['username']
-                ),
-                DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
-            ),
-            $comment);
+            $usersRepo->getUserByUUID(new UUID($result['author'])),
+            $commentsRepo->getCommentByUUID(new UUID($result['comment']))
+        );
     }
 
     public function deleteCommentLike(UUID $uuid): void
@@ -150,22 +104,10 @@ class SqliteCommentLikesRepository implements CommentLikesRepositoriesInterface
         ]);
     }
 
-    public function query(string $table, UUID $uuid) : ?array
-    {
-        $statement = $this->connection->prepare(
-            "SELECT * FROM $table WHERE uuid = :uuid"
-        );
-
-        $statement->execute([
-                ':uuid' => (string)$uuid
-            ]);
-
-        return $statement->fetch(PDO::FETCH_ASSOC) ?? null;
-    }
-
     /**
+     * @throws CommentNotFoundException
      * @throws InvalidUuidException
-     * @throws LikeNotFoundException
+     * @throws UserNotFoundException
      */
     public function getLikesByCommentUUID(UUID $comment) : ?array
     {

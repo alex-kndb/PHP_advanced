@@ -4,7 +4,6 @@ namespace LksKndb\Php2\http\Actions\Like;
 
 use LksKndb\Php2\Blog\Repositories\LikesRepositories\CommentLikesRepositoriesInterface;
 use LksKndb\Php2\Blog\UUID;
-use LksKndb\Php2\Exceptions\Comment\CommentNotFoundException;
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use LksKndb\Php2\http\Actions\ActionInterface;
@@ -34,7 +33,7 @@ class FindCommentLikeByUUID implements ActionInterface
 
         try {
             $like = $this->commentLikesRepository->getCommentLikeByUUID(new UUID($uuid));
-        } catch (CommentNotFoundException|InvalidUuidException $e){
+        } catch (InvalidUuidException $e){
             return new ErrorResponse($e->getMessage());
         }
 

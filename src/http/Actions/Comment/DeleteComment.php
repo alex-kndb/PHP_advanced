@@ -28,7 +28,7 @@ class DeleteComment implements ActionInterface
         try {
             $uuid = new UUID($request->query('uuid'));
         } catch (HttpException | InvalidUuidException $e) {
-            (new ErrorResponse($e->getMessage()))->send();
+            return new ErrorResponse($e->getMessage());
         }
 
         $this->commentsRepository->deleteComment($uuid);

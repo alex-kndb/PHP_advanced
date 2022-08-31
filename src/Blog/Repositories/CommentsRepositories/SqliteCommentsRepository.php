@@ -33,7 +33,7 @@ class SqliteCommentsRepository implements CommentsRepositoriesInterface
             ':text' => $comment->getText(),
         ]);
 
-        $this->logger->info("SqliteCommentRepo -> comment created: {$comment->getUuid()}");
+//        $this->logger->info("SqliteCommentRepo -> comment created: {$comment->getUuid()}");
     }
 
     /**

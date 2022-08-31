@@ -3,6 +3,7 @@
 namespace LksKndb\Php2\Blog\Commands;
 
 use LksKndb\Php2\Blog\Post;
+use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
 use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\ArgumentNotExistException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
@@ -11,7 +12,8 @@ use LksKndb\Php2\Blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
 class CreatePostCommand
 {
     public function __construct(
-        private PostsRepositoriesInterface $postsRepository
+        private PostsRepositoriesInterface $postsRepository,
+        private UsersRepositoriesInterface $usersRepository
     )
     {
     }
@@ -25,13 +27,16 @@ class CreatePostCommand
         $this->postsRepository->savePost(
             new Post(
                 UUID::createUUID(),
-                new UUID($args->get('author')),
+                $this->usersRepository->getUserByUUID(new UUID($args->get('author'))),
                 $args->get('title'),
                 $args->get('text')
             )
         );
     }
 
+    /**
+     * @throws InvalidUuidException
+     */
     public function get(string $uuid): Post
     {
         return $this->postsRepository->getPostByUUID(new UUID($uuid));

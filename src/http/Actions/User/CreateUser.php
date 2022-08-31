@@ -2,10 +2,9 @@
 
 namespace LksKndb\Php2\http\Actions\User;
 
-use DateTimeImmutable;
+use JsonException;
 use LksKndb\Php2\Blog\Name;
 use LksKndb\Php2\Blog\User;
-use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\http\Actions\ActionInterface;
 use LksKndb\Php2\http\ErrorResponse;
@@ -36,7 +35,7 @@ class CreateUser implements ActionInterface
                 ),
                 $request->jsonBodyField('password'),
             );
-        } catch (HttpException | \JsonException $e) {
+        } catch (HttpException | JsonException $e) {
             return new ErrorResponse($e->getMessage());
         }
 

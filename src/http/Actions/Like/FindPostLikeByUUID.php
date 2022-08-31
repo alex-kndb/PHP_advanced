@@ -3,7 +3,6 @@
 namespace LksKndb\Php2\http\Actions\Like;
 
 use LksKndb\Php2\Blog\UUID;
-use LksKndb\Php2\Exception\Likes\LikeNotFoundException;
 use LksKndb\Php2\Exceptions\HttpException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use LksKndb\Php2\http\Actions\ActionInterface;
@@ -34,7 +33,7 @@ class FindPostLikeByUUID implements ActionInterface
 
         try {
             $like = $this->postLikesRepository->getPostLikeByUUID(new UUID($uuid));
-        } catch (LikeNotFoundException|InvalidUuidException $e){
+        } catch (InvalidUuidException $e){
             return new ErrorResponse($e->getMessage());
         }
 

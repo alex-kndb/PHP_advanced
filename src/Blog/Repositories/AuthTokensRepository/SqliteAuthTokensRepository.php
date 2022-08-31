@@ -6,8 +6,6 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
 use LksKndb\Php2\Blog\UUID;
-use LksKndb\Php2\Exception\AuthTokensRepository\AuthTokenNotFoundException;
-use LksKndb\Php2\Exception\AuthTokensRepository\AuthTokensRepositoryException;
 use LksKndb\Php2\http\Auth\AuthToken;
 use PDO;
 use PDOException;
@@ -22,9 +20,6 @@ class SqliteAuthTokensRepository implements AuthTokensRepositoryInterface
     ) {
     }
 
-    /**
-     * @throws AuthTokensRepositoryException
-     */
     public function save(AuthToken $authToken): void
     {
         // Если придет токен с таким же id, то перезапишется только expires_on
@@ -53,10 +48,6 @@ class SqliteAuthTokensRepository implements AuthTokensRepositoryInterface
         }
     }
 
-    /**
-     * @throws AuthTokensRepositoryException
-     * @throws AuthTokenNotFoundException
-     */
     public function get(string $token): AuthToken
     {
         try {

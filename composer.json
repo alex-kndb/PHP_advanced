@@ -19,6 +19,7 @@
         "ext-mbstring": "*",
         "psr/container": "^2.0",
         "vlucas/phpdotenv": "^5.4",
-        "monolog/monolog": "^3.2"
+        "monolog/monolog": "^3.2",
+        "symfony/console": "^6.1"
     }
 }

@@ -6,11 +6,14 @@ use DateTimeImmutable;
 use LksKndb\Php2\Blog\Name;
 use LksKndb\Php2\Blog\Post;
 use LksKndb\Php2\Blog\PostLike;
+use LksKndb\Php2\Blog\Repositories\PostsRepositories\SqlitePostsRepository;
+use LksKndb\Php2\Blog\Repositories\UsersRepositories\SqliteUsersRepository;
 use LksKndb\Php2\Blog\User;
 use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exception\Likes\LikeNotFoundException;
+use LksKndb\Php2\Exceptions\Posts\PostNotFoundException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
-use LksKndb\Php2\Exceptions\Likes\PostIsAlreadyLikedByThisUser;
+use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use PDO;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
@@ -56,12 +59,9 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
     public function getPostLikeByUUID(UUID $uuid): PostLike
     {
         $statement = $this->connection->prepare(
-            'SELECT posts_likes.uuid,posts_likes.author AS like_author,posts_likes.post,users.username,users.first_name,users.last_name,users.password,users.registration,posts.author AS post_author ,posts.title,posts.text
-                    FROM posts_likes
-                    LEFT JOIN posts ON posts_likes.post=posts.uuid
-                    LEFT JOIN  users ON posts_likes.author=users.uuid
-                    WHERE posts_likes.uuid=:uuid'
+            'SELECT * FROM posts_likes WHERE uuid=:uuid'
         );
+
         $statement->execute([
             ':uuid' => (string)$uuid,
         ]);
@@ -70,7 +70,8 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
 
     /**
      * @throws InvalidUuidException
-     * @throws LikeNotFoundException
+     * @throws UserNotFoundException
+     * @throws PostNotFoundException
      */
     private function getPostLike(PDOStatement $statement, string $uuid): PostLike
     {
@@ -81,41 +82,14 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
             exit;
         }
 
-        $like_author = new User(
-            new UUID($result['like_author']),
-            new Name(
-                $result['first_name'],
-                $result['last_name'],
-                $result['username']
-            ),
-            $result['password'],
-            DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $result['registration'])
-        );
-
-        $post_author_result = $this->query('users', new UUID($result['post_author']));
-
-        $post_author = new User(
-            new UUID($post_author_result['uuid']),
-            new Name(
-                $post_author_result['first_name'],
-                $post_author_result['last_name'],
-                $post_author_result['username']
-            ),
-            $result['password'],
-            DateTimeImmutable::createFromFormat('Y-m-d\ H:i:s', $post_author_result['registration'])
-        );
-
-        $post = new Post(
-            new UUID($result['post']),
-            $post_author,
-            $result['title'],
-            $result['text']
-        );
+        $usersRepo = new SqliteUsersRepository($this->connection,$this->logger);
+        $postsRepo = new SqlitePostsRepository($this->connection,$this->logger);
 
         return new PostLike(
             new UUID($result['uuid']),
-            $like_author,
-            $post);
+            $usersRepo->getUserByUUID(new UUID($result['author'])),
+            $postsRepo->getPostByUUID(new UUID($result['post']))
+        );
     }
 
     public function deletePostLike(UUID $id): void
@@ -126,20 +100,6 @@ class SqlitePostLikesRepository implements PostLikesRepositoriesInterface
         $statement->execute([
             ':id' => (string)$id,
         ]);
-    }
-
-
-    public function query(string $table, UUID $uuid) : ?array
-    {
-        $statement = $this->connection->prepare(
-            "SELECT * FROM $table WHERE uuid = :uuid"
-        );
-
-        $statement->execute([
-            ':uuid' => (string)$uuid
-        ]);
-
-        return $statement->fetch(PDO::FETCH_ASSOC) ?? null;
     }
 
     /**

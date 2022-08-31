@@ -9,7 +9,6 @@ use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\User\InvalidUsernameException;
 use LksKndb\Php2\Exceptions\User\InvalidUuidException;
 use LksKndb\Php2\Exceptions\User\UserNotFoundException;
-use LksKndb\Php2\Exceptions\UserAlreadyExistException;
 use PDO;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
@@ -21,17 +20,19 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
         private LoggerInterface $logger
     ){}
 
-    /**
-     * @throws InvalidUuidException
-     * @throws UserNotFoundException
-     * @throws InvalidUsernameException
-     * @throws UserAlreadyExistException
-     */
     public function saveUser(User $user): void
     {
         $statement = $this->connection->prepare(
-            'INSERT INTO users (uuid, username, first_name,last_name, password, registration) VALUES (:uuid, :username, :first_name, :last_name, :password, :registration)'
+            'INSERT INTO users 
+                        (uuid, username, first_name,last_name, password, registration) 
+                    VALUES 
+                        (:uuid, :username, :first_name, :last_name, :password, :registration)
+                    ON CONFLICT (username) 
+                        DO UPDATE SET
+                            first_name = :first_name,
+                            last_name = :last_name'
         );
+
         $statement->execute([
             ':uuid' => $user->getUUID(),
             ':username' => $user->getName()->getUsername(),
@@ -41,10 +42,10 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
             ':registration' => $user->getRegisteredOn()->format('Y-m-d\ H:i:s'),
         ]);
 
-        $this->logger->info("SqliteUserRepo -> user created: {$user->getUUID()}");
+//        $this->logger->info("User save in db: ".$user->getUUID());
     }
 
-    public function isUserExist(string $username) : bool
+    public function isUserExists(string $username) : bool
     {
         $statement = $this->connection->prepare(
             'SELECT * FROM users WHERE username = :username'
@@ -52,7 +53,7 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
         $statement->execute([
             ':username' => $username,
         ]);
-        return (bool)$statement->fetch(PDO::FETCH_ASSOC);
+        return (bool)$statement->fetch();
     }
 
     /**
@@ -73,16 +74,14 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
     }
 
     /**
-     * @throws InvalidUsernameException
      * @throws InvalidUuidException
-     * @throws UserNotFoundException
+     * @throws InvalidUsernameException|UserNotFoundException
      */
     public function getUserByUsername(string $username): User
     {
         if(empty($username)){
            $this->logger->warning("Username is empty!");
-            // throw new InvalidUsernameException("Username is empty!");
-            exit;
+           throw new InvalidUsernameException("Username is empty!");
         }
         $statement = $this->connection->prepare(
             'SELECT * FROM users WHERE username = :username'
@@ -107,17 +106,17 @@ class SqliteUsersRepository implements UsersRepositoriesInterface
                 $arr = explode('\\', get_class($searchBy));
                 if(array_pop($arr) === 'UUID'){
                     $this->logger->warning("User (UUID: $searchBy) not found into db");
-                    // throw new UserNotFoundException("User (UUID: $searchBy) not found into db");
-                    exit;
+                    throw new UserNotFoundException("User (UUID: $searchBy) not found into db");
+                }else{
+                    $this->logger->error("DB: user searching error (not UUID)!");
+                    throw new UserNotFoundException("DB: user searching error!");
                 }
             }elseif(is_string($searchBy)){
                 $this->logger->warning("User (Username: $searchBy) not found into db");
-                // throw new UserNotFoundException("User (Username: $searchBy) not found into db");
-                exit;
+                throw new UserNotFoundException("User (Username: $searchBy) not found into db");
             }else{
                 $this->logger->error("DB: user searching error!");
-                // throw new UserNotFoundException("DB: user searching error!");
-                exit;
+                throw new UserNotFoundException("DB: user searching error!");
             }
         }
 

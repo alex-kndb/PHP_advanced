@@ -21,6 +21,11 @@ use LksKndb\Php2\http\Auth\TokenAuthenticationInterface;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
+use Faker\Generator;
+use Faker\Provider\Lorem;
+use Faker\Provider\ru_RU\Internet;
+use Faker\Provider\ru_RU\Person;
+use Faker\Provider\ru_RU\Text;
 
 require_once __DIR__.'/vendor/autoload.php';
 
@@ -29,6 +34,12 @@ Dotenv::createImmutable(__DIR__)->safeLoad();
 $container = new DIContainer();
 
 $logger = new Logger('blog');
+
+$faker = new Generator();
+$faker->addProvider(new Person($faker));
+$faker->addProvider(new Text($faker));
+$faker->addProvider(new Internet($faker));
+$faker->addProvider(new Lorem($faker));
 
 if ($_SERVER['LOG_TO_FILES'] === 'yes') {
     $logger
@@ -48,6 +59,11 @@ if ($_SERVER['LOG_TO_CONSOLE'] === 'yes') {
             new StreamHandler("php://stdout")
         );
 }
+
+$container->bind(
+    Generator::class,
+    $faker
+);
 
 $container->bind(
     LoggerInterface::class,

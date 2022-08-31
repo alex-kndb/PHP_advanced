@@ -3,7 +3,6 @@
 namespace LksKndb\Php2\http\Actions\User;
 
 use LksKndb\Php2\Exceptions\HttpException;
-use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use LksKndb\Php2\http\Actions\ActionInterface;
 use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
@@ -30,11 +29,7 @@ class FindUserByUsername implements ActionInterface
             return new ErrorResponse($e->getMessage());
         }
 
-        try {
-            $user = $this->usersRepository->getUserByUsername($username);
-        } catch (UserNotFoundException $e){
-            return new ErrorResponse($e->getMessage());
-        }
+        $user = $this->usersRepository->getUserByUsername($username);
 
         $this->logger->info("User found: $username");
 
@@ -43,7 +38,7 @@ class FindUserByUsername implements ActionInterface
             'username' => $user->getName()->getUsername(),
             'first_name' => $user->getName()->getFirstName(),
             'last_name' => $user->getName()->getLastName(),
-            'password' => $user->password(),
+            'password' => $user->hashedPassword(),
             'registeredOn' => $user->getRegisteredOn()->format('Y-m-d\ H:i:s')
         ]);
     }

@@ -31,12 +31,12 @@ class SqlitePostsRepository implements PostsRepositoriesInterface
             ':text' => $post->getText(),
         ]);
 
-        $this->logger->info("SqlitePostRepo -> post created: {$post->getPost()}");
+//        $this->logger->info("SqlitePostRepo -> post created: {$post->getPost()}");
     }
 
     /**
      * @throws InvalidUuidException
-     * @throws PostNotFoundException
+     * @throws UserNotFoundException|PostNotFoundException
      */
     public function getPostByUUID(UUID $uuid): Post
     {
@@ -52,14 +52,14 @@ class SqlitePostsRepository implements PostsRepositoriesInterface
     /**
      * @throws InvalidUuidException
      * @throws UserNotFoundException
+     * @throws PostNotFoundException
      */
     private function getPost(PDOStatement $statement, string $uuid): Post
     {
         $result = $statement->fetch(PDO::FETCH_ASSOC);
         if(!$result) {
             $this->logger->warning("DB: post (UUID: $uuid) not found!");
-            // throw new PostNotFoundException("DB: post (UUID: $uuid) not found!");
-            exit;
+            throw new PostNotFoundException("DB: post (UUID: $uuid) not found!");
         }
 
         $userRepo = new SqliteUsersRepository($this->connection, $this->logger);

@@ -2,6 +2,7 @@
 
 namespace LksKndb\Php2\http\Actions\Comment;
 
+use JsonException;
 use LksKndb\Php2\Blog\Comment;
 use LksKndb\Php2\Blog\Exception\AuthException;
 use LksKndb\Php2\Blog\UUID;
@@ -15,7 +16,6 @@ use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
 use LksKndb\Php2\Blog\Repositories\CommentsRepositories\CommentsRepositoriesInterface;
 use LksKndb\Php2\Blog\Repositories\PostsRepositories\PostsRepositoriesInterface;
-use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
 use Psr\Log\LoggerInterface;
 
 class CreateComment implements ActionInterface
@@ -28,10 +28,6 @@ class CreateComment implements ActionInterface
     ) {
     }
 
-    /**
-     * @throws AuthException
-     * @throws \JsonException
-     */
     public function handle(Request $request): Response
     {
         $this->logger->info("Comment create http-action started");
@@ -44,13 +40,13 @@ class CreateComment implements ActionInterface
 
         try {
             $post_id = $request->jsonBodyField('post');
-        } catch (HttpException $e) {
+        } catch (HttpException | JsonException $e) {
             return new ErrorResponse($e->getMessage());
         }
 
         try {
             $post = $this->postsRepository->getPostByUUID(new UUID($post_id));
-        } catch (HttpException | InvalidUuidException $e) {
+        } catch (InvalidUuidException $e) {
             return new ErrorResponse($e->getMessage());
         }
 
@@ -63,7 +59,7 @@ class CreateComment implements ActionInterface
                 $user,
                 $request->jsonBodyField('text'),
             );
-        } catch (HttpException | \JsonException$e) {
+        } catch (HttpException | JsonException $e) {
             return new ErrorResponse($e->getMessage());
         }
 

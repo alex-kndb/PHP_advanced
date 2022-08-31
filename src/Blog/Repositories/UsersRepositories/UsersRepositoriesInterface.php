@@ -10,4 +10,5 @@ interface UsersRepositoriesInterface
     public function saveUser(User $user): void;
     public function getUserByUUID(UUID $uuid): User;
     public function getUserByUsername(string $username): User;
+    public function isUserExists(string $username) : bool;
 }

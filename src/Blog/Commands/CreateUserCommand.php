@@ -2,13 +2,10 @@
 
 namespace LksKndb\Php2\Blog\Commands;
 
-use DateTimeImmutable;
 use LksKndb\Php2\Blog\Name;
 use LksKndb\Php2\Blog\User;
-use LksKndb\Php2\Blog\UUID;
 use LksKndb\Php2\Exceptions\ArgumentNotExistException;
 use LksKndb\Php2\Exceptions\CommandException;
-use LksKndb\Php2\Exceptions\User\UserNotFoundException;
 use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
 
 class CreateUserCommand
@@ -23,34 +20,20 @@ class CreateUserCommand
      */
     public function handle(Arguments $args): void
     {
-        // Проверяем на существование такого юзера в базе
         $username = $args->get('username');
-        if($this->isUserExist($username)){
+        if($this->usersRepository->isUserExists($username)){
             throw new CommandException("User (username: $username) already exist!");
         }
 
-        // Создаем нового юзера и сохраняем в базу
         $this->usersRepository->saveUser(
-            New User(
-                UUID::createUUID(),
+            User::createFrom(
                 new Name(
                     $args->get('first_name'),
                     $args->get('last_name'),
-                    $args->get('username'),
+                    $args->get('username')
                 ),
-                new DateTimeImmutable()
+                $args->get('password')
             )
         );
-    }
-
-    private function isUserExist(string $username): bool
-    {
-        try{
-            $this->usersRepository->getUserByUsername($username);
-        }catch(UserNotFoundException $e){
-//            echo $e->getMessage();
-            return false;
-        }
-        return true;
     }
 }

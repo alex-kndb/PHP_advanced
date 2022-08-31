@@ -2,7 +2,9 @@
 
 namespace LksKndb\Php2\http\Actions\Like;
 
+use JsonException;
 use LksKndb\Php2\Blog\CommentLike;
+use LksKndb\Php2\Blog\Exception\AuthException;
 use LksKndb\Php2\Blog\Repositories\CommentsRepositories\CommentsRepositoriesInterface;
 use LksKndb\Php2\Blog\Repositories\LikesRepositories\CommentLikesRepositoriesInterface;
 use LksKndb\Php2\Blog\UUID;
@@ -14,7 +16,6 @@ use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
-use LksKndb\Php2\Blog\Repositories\UsersRepositories\UsersRepositoriesInterface;
 use Psr\Log\LoggerInterface;
 
 class CreateCommentLike implements ActionInterface
@@ -27,6 +28,9 @@ class CreateCommentLike implements ActionInterface
     ) {
     }
 
+    /**
+     * @throws AuthException
+     */
     public function handle(Request $request): Response
     {
         $this->logger->info("Post like create http-action started");
@@ -35,26 +39,22 @@ class CreateCommentLike implements ActionInterface
 
         try {
             $comment_id = $request->jsonBodyField('comment');
-        } catch (HttpException | \JsonException $e) {
+        } catch (HttpException | JsonException $e) {
             return new ErrorResponse($e->getMessage());
         }
 
         try {
             $comment = $this->commentsRepository->getCommentByUUID(new UUID($comment_id));
-        } catch (HttpException | InvalidUuidException $e) {
+        } catch (InvalidUuidException $e) {
             return new ErrorResponse($e->getMessage());
         }
 
         $uuid = UUID::createUUID();
-        try {
-            $commentLike = new CommentLike(
-                $uuid,
-                $user,
-                $comment
-            );
-        } catch (HttpException | \JsonException$e) {
-            return new ErrorResponse($e->getMessage());
-        }
+        $commentLike = new CommentLike(
+            $uuid,
+            $user,
+            $comment
+        );
 
         $this->commentLikesRepository->save($commentLike);
 

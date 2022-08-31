@@ -3,10 +3,9 @@
 namespace LksKndb\Php2\http\Auth;
 
 use DateTimeImmutable;
-use LksKndb\Php2\Blog\Exception\AuthException;
+use Exception;
 use LksKndb\Php2\Blog\Repositories\AuthTokensRepository\AuthTokensRepositoryInterface;
 use LksKndb\Php2\http\Actions\ActionInterface;
-use LksKndb\Php2\http\ErrorResponse;
 use LksKndb\Php2\http\Request;
 use LksKndb\Php2\http\Response;
 use LksKndb\Php2\http\SuccessfulResponse;
@@ -22,15 +21,11 @@ class LogIn implements ActionInterface
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function handle(Request $request): Response
     {
-        try {
-            $user = $this->passwordAuthentication->user($request);
-        } catch (AuthException $e) {
-            return new ErrorResponse($e->getMessage());
-        }
+        $user = $this->passwordAuthentication->user($request);
 
         $authToken = new AuthToken(
             bin2hex(random_bytes(40)),

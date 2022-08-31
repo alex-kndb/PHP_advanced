@@ -2,6 +2,7 @@
 
 namespace LksKndb\Php2\http\Actions\Like;
 
+use JsonException;
 use LksKndb\Php2\Blog\Exception\AuthException;
 use LksKndb\Php2\Blog\PostLike;
 use LksKndb\Php2\Blog\UUID;
@@ -29,7 +30,7 @@ class CreatePostLike implements ActionInterface
 
     public function handle(Request $request): Response
     {
-        $this->logger->info("Comment like create http-action started");
+        $this->logger->info("Post like create http-action started");
 
         try {
             $user = $this->authentication->user($request);
@@ -39,10 +40,9 @@ class CreatePostLike implements ActionInterface
 
         try {
             $post_id = $request->jsonBodyField('post');
-        } catch (HttpException $e) {
+        } catch (HttpException | JsonException $e) {
             return new ErrorResponse($e->getMessage());
         }
-
 
         try {
             $post = $this->postsRepository->getPostByUUID(new UUID($post_id));
@@ -50,29 +50,23 @@ class CreatePostLike implements ActionInterface
             return new ErrorResponse($e->getMessage());
         }
 
-        $uuid = UUID::createUUID();
-        try {
-            $postLike = new PostLike(
-                $uuid,
-                $user,
-                $post
-            );
-        } catch (HttpException | \JsonException $e) {
-            return new ErrorResponse($e->getMessage());
-        }
-
-        $post = $postLike->getPost()->getPost();
-        $user = $postLike->getUser()->getUUID();
-        if($this->postLikesRepository->isPostAlreadyLiked($post, $user)){
+        if($this->postLikesRepository->isPostAlreadyLiked($post->getPost(), $user->getUUID())){
             $mess = "Post is already liked by this user: $user";
             $this->logger->warning($mess);
             // throw new PostIsAlreadyLikedByThisUser($mess);
             return new ErrorResponse($mess);
         }
 
+        $uuid = UUID::createUUID();
+        $postLike = new PostLike(
+            $uuid,
+            $user,
+            $post
+        );
+
         $this->postLikesRepository->save($postLike);
 
-        $this->logger->info("Comment like created: $uuid");
+        $this->logger->info("Post like created: $uuid");
 
         return new SuccessfulResponse(
             ['uuid' => (string)($postLike->getUuid())]
